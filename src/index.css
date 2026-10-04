@@ -1,0 +1,111 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter/wght.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    /* Apple's own SF Pro on iPhone and Mac (the system font). Everywhere else, Inter: the closest open
+       lookalike, bundled because SF Pro's licence doesn't allow shipping it. */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter Variable", "Segoe UI", system-ui, sans-serif;
+    --font-heading: var(--font-sans);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --color-raised: var(--raised);
+    --color-track: var(--track);
+    --color-faint: var(--faint);
+    --color-income: var(--income);
+    --color-over: var(--over);
+    --color-rule: var(--rule);
+    --color-margin: var(--margin);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Navy only: there is no light theme. Category and chart colours were run through the dataviz
+   validator against the card surface (#111D35): all in the dark lightness band, >= 5:1 contrast,
+   and the picker order in components/category.tsx keeps neighbours apart for colourblind eyes. */
+:root {
+    color-scheme: dark;
+    --background: #0b1426;
+    --foreground: #eef2fa;
+    --card: #111d35;
+    --card-foreground: #eef2fa;
+    --popover: #16243f;
+    --popover-foreground: #eef2fa;
+    --primary: #d8b56a;
+    --primary-foreground: #1a1405;
+    --secondary: #16243f;
+    --secondary-foreground: #eef2fa;
+    --muted: #16243f;
+    --muted-foreground: #8d9bb8;
+    --accent: #1e2d4d;
+    --accent-foreground: #eef2fa;
+    --destructive: #f08b7a;
+    --border: rgb(255 255 255 / 7%);
+    --input: rgb(255 255 255 / 10%);
+    --ring: #d8b56a;
+    --radius: 0.625rem;
+
+    --raised: #16243f;
+    --track: #1e2d4d;
+    --faint: #5d6c8a;
+    --income: #6fd3a8;
+    --over: #f08b7a;
+    --rule: rgb(148 170 214 / 9%);
+    --margin: rgb(216 181 106 / 30%);
+
+    --chart-spent: #b38e3a;
+    --chart-income: #0a9068;
+    --chart-pace: #5d6c8a;
+
+    --cat-food: #ce7a3b;
+    --cat-bills: #9881d9;
+    --cat-groceries: #65a556;
+    --cat-transport: #4d97de;
+    --cat-shopping: #cc6f9d;
+    --cat-leisure: #ab9017;
+    --cat-health: #02a6ad;
+    --cat-other: #8d9bb8;
+    --cat-income: #6fd3a8;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply bg-background font-sans;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply min-h-svh bg-background text-foreground antialiased;
+    overscroll-behavior: none;
+  }
+  ::selection {
+    background: rgb(216 181 106 / 35%);
+  }
+}

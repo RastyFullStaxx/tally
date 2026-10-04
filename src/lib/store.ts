@@ -1,0 +1,64 @@
+// Where Tally's data lives: one JSON document in this app's own localStorage, on the phone only.
+// ponytail: localStorage caps near 5 MB, about ten years at ten entries a day; move to IndexedDB if it gets close.
+import { localDate, mergeBackup, toBackup, type Data } from "./ledger"
+
+const KEY = "tally:v1"
+
+/** Reads the saved data. Unreadable data is copied aside under its own key first, never overwritten. */
+export function load(): Data {
+  let raw: string | null = null
+  try {
+    raw = localStorage.getItem(KEY)
+    if (!raw) return { entries: [], budget: 0 }
+    const data = JSON.parse(raw) as Data
+    if (Array.isArray(data.entries) && typeof data.budget === "number") return data
+    throw new Error("Unexpected shape")
+  } catch {
+    try {
+      if (raw) localStorage.setItem(`tally:corrupt:${Date.now()}`, raw)
+    } catch {
+      // Storage is full or blocked; the save banner will say so on the next change.
+    }
+    return { entries: [], budget: 0 }
+  }
+}
+
+/** Saves everything. False when the phone refused (storage full or blocked). */
+export function save(data: Data): boolean {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data))
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Hands a backup file to the share sheet (Save to Files on iPhone), or downloads it where sharing files isn't supported. */
+export async function exportBackup(data: Data) {
+  const name = `tally-backup-${localDate()}.json`
+  const file = new File([toBackup(data)], name, { type: "application/json" })
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] })
+      return
+    } catch (error) {
+      if ((error as Error).name === "AbortError") return
+    }
+  }
+  const url = URL.createObjectURL(file)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = name
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export async function importBackup(file: File, current: Data) {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(await file.text())
+  } catch {
+    throw new Error("That file isn't a Tally backup.")
+  }
+  return mergeBackup(current, parsed)
+}
