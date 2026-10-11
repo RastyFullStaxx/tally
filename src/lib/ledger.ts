@@ -333,7 +333,7 @@ export type Tip = { tone: "warn" | "tip" | "good"; title: string; why: string; a
 
 const TONE_ORDER = { warn: 0, tip: 1, good: 2 }
 
-/** What to do, from the month's own numbers: warnings first, then tips by how many pesos they're worth. */
+/** What to do, in plain words, from the month's own numbers: warnings first, then tips by how many pesos they're worth. */
 export function advise(entries: Entry[], month: string, budget: number, today: string): Tip[] {
   const s = monthSummary(entries, month, budget, today)
   if (!s.day) return []
@@ -346,6 +346,7 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
   const expenses = expensesIn(entries, month)
   const toMonthEnd = (amount: number) => (current ? Math.round((amount / s.day) * s.days) : amount)
   const days = (n: number) => `${n} ${n === 1 ? "day" : "days"}`
+  const lower = (c: CategoryId) => CATEGORIES[c].toLowerCase()
   const tips: (Tip & { weight: number })[] = []
   const add = (tone: Tip["tone"], weight: number, title: string, why: string, action: string) => tips.push({ tone, weight, title, why, action })
 
@@ -357,12 +358,12 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
       .filter((c) => group.includes(c.category))
       .map((c) => `${CATEGORIES[c.category]} ${pesos(c.total)}`)
       .join(", ")
-  // Splits a daily allowance the way this month's day-to-day spending divides (bills are paid once, so left out).
+  // Splits a daily limit the way this month's everyday spending divides (bills are paid once, so left out).
   const dayToDay = s.spent - bills
   const split = (perDay: number) =>
-    dayToDay > 0 ? ` That's about ${pesos((perDay * (p.needs - bills)) / dayToDay)} for needs and ${pesos((perDay * (p.wants + p.other)) / dayToDay)} for everything else.` : ""
+    dayToDay > 0 ? ` Roughly ${pesos((perDay * (p.needs - bills)) / dayToDay)} for things you need and ${pesos((perDay * (p.wants + p.other)) / dayToDay)} for everything else.` : ""
 
-  // Budget and pace.
+  // The budget.
   if (!budget) {
     const last = monthSummary(entries, shiftMonth(month, -1), 0, today).spent
     const suggest = Math.max(50000, Math.floor((last * 0.9) / 50000) * 50000)
@@ -370,79 +371,94 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
       "tip",
       Number.MAX_SAFE_INTEGER,
       "Set a monthly budget",
-      last ? `You spent ${pesos(last)} in ${prevName}. Without a budget there's nothing to pace against.` : "Without a budget there's nothing to pace against.",
-      last ? `Try ${pesos(suggest)}, 10% under ${prevName}, from the ··· menu.` : "Set one from the ··· menu."
+      `${last ? `Last month you spent ${pesos(last)}. ` : ""}A budget lets Tally warn you before you overspend.`,
+      last ? `Tap ··· at the top, then Monthly budget. Try ${pesos(suggest)}.` : "Tap ··· at the top, then Monthly budget."
     )
   } else if (s.spent > budget) {
     add(
       "warn",
       s.spent - budget,
-      current ? `Over budget by ${pesos(s.spent - budget)}` : `Went ${pesos(s.spent - budget)} over budget`,
-      current ? `${pesos(s.spent)} spent against ${pesos(budget)}, with ${days(s.daysLeft)} still to go.` : `${pesos(s.spent)} spent against ${pesos(budget)} in ${name}.`,
+      current ? `You're ${pesos(s.spent - budget)} over your budget` : `You went ${pesos(s.spent - budget)} over budget`,
       current
-        ? `Spend only on needs until the 1st. Day-to-day needs have run about ${pesos((p.needs - bills) / s.day)} a day.`
+        ? `Your budget is ${pesos(budget)} and you've spent ${pesos(s.spent)}, with ${days(s.daysLeft)} still to go.`
+        : `Your budget was ${pesos(budget)} and you spent ${pesos(s.spent)} in ${name}.`,
+      current
+        ? `Until the 1st, buy only what you really need. That has been costing you about ${pesos((p.needs - bills) / s.day)} a day.`
         : topWant
-          ? `Next month, start by trimming ${CATEGORIES[topWant.category]}, which came to ${pesos(topWant.total)}.`
-          : "Next month, set a budget that matches what you really spend, then trim from there."
+          ? `Next month, cut back on ${lower(topWant.category)} first. It cost you ${pesos(topWant.total)}.`
+          : "Next month, set a budget closer to what you really spend."
     )
   } else if (!current) {
-    add("good", 0, `Finished ${pesos(budget - s.spent)} under budget`, `${pesos(s.spent)} of ${pesos(budget)} spent in ${name}.`, "Move the difference into savings so it doesn't drift into next month.")
+    add("good", 0, `You stayed ${pesos(budget - s.spent)} under budget`, `You spent ${pesos(s.spent)} of your ${pesos(budget)} budget in ${name}.`, "Put the leftover into savings.")
   } else if (s.day >= 7) {
     const rate = (s.spent - bills) / s.day
     if (s.projected > budget)
       add(
         "warn",
         s.projected - budget,
-        `Heading ${pesos(s.projected - budget)} over budget`,
-        `At ${pesos(rate)} a day you'll reach ${pesos(s.projected)} by month-end (bills counted once).`,
-        `Keep to ${pesos(s.perDay)} a day from here.${split(s.perDay)}`
+        `You're on track to overspend by ${pesos(s.projected - budget)}`,
+        `You're spending about ${pesos(rate)} a day. Keep that up and you'll spend ${pesos(s.projected)} this month, but your budget is ${pesos(budget)}.`,
+        `To stay within budget, spend no more than ${pesos(s.perDay)} a day from now on.${split(s.perDay)}`
       )
-    else add("good", 0, `On pace to finish ${pesos(budget - s.projected)} under budget`, `Projected ${pesos(s.projected)} of ${pesos(budget)} at ${pesos(rate)} a day.`, `Your allowance is ${pesos(s.perDay)} a day.${split(s.perDay)}`)
+    else
+      add(
+        "good",
+        0,
+        `You're on track to have ${pesos(budget - s.projected)} left over`,
+        `At this rate you'll spend about ${pesos(s.projected)} of your ${pesos(budget)} budget.`,
+        `You can spend up to ${pesos(s.perDay)} a day and still stay within budget.`
+      )
   } else if (s.spent > s.pace) {
     // Under a week of data, a month-end projection is mostly noise; say what's true instead.
     add(
       "tip",
       s.spent - s.pace,
-      `${pct(s.spent / budget)} of the budget used in ${days(s.day)}`,
-      `${pesos(s.spent)} spent; an even pace would be ${pesos(s.pace)} by now.${bills ? ` Bills were ${pesos(bills)} of it.` : ""}`,
-      `Keep to ${pesos(s.perDay)} a day for the rest of the month.${split(s.perDay)}`
+      `You've already used ${pct(s.spent / budget)} of your budget`,
+      `It's only day ${s.day} and you've spent ${pesos(s.spent)}.${bills ? ` ${pesos(bills)} of that was bills.` : ""}`,
+      `Spend no more than ${pesos(s.perDay)} a day for the rest of the month.${split(s.perDay)}`
     )
   }
 
-  // Income, and the 50/30/20 guide: needs 50%, wants 30%, savings 20%.
+  // Income. Healthy limits: essentials 50% of income, extras 30%, savings 20%.
   if (s.income > 0) {
     const rate = s.net / s.income
-    const wantsCap = s.income * 0.3
-    const needsCap = s.income * 0.5
+    const extrasLimit = s.income * 0.3
+    const essentialsLimit = s.income * 0.5
     if (s.net < 0)
       add(
         "warn",
         -s.net,
-        `Spending is ${pesos(-s.net)} more than income`,
-        `${pesos(s.income)} came in and ${pesos(s.spent)} went out ${when}.`,
-        topWant ? `Close the gap from wants first: ${CATEGORIES[topWant.category]} is ${pesos(topWant.total)} so far.` : "Hold off on extras until more income comes in."
+        `You've spent ${pesos(-s.net)} more than you earned`,
+        `You earned ${pesos(s.income)} and spent ${pesos(s.spent)} ${when}.`,
+        topWant ? `Cut back on ${lower(topWant.category)} first. You've spent ${pesos(topWant.total)} on it.` : "Hold off on extras until more money comes in."
       )
-    if (p.wants > wantsCap)
-      add("tip", p.wants - wantsCap, `Wants are ${pct(p.wants / s.income)} of income`, `The 50/30/20 guide keeps wants to 30% (${pesos(wantsCap)}). Yours: ${listCats(WANTS)}.`, `Bring wants down by ${pesos(p.wants - wantsCap)} to protect your savings.`)
-    else if (p.needs > needsCap && topNeed)
-      add("tip", p.needs - needsCap, `Needs are ${pct(p.needs / s.income)} of income`, `The 50/30/20 guide keeps needs to 50% (${pesos(needsCap)}). Yours: ${listCats(NEEDS)}.`, `Needs are slow to change. Start with the biggest, ${CATEGORIES[topNeed.category]} at ${pesos(topNeed.total)}.`)
-    else if (rate >= 0.2)
+    if (p.wants > extrasLimit)
       add(
-        "good",
-        0,
-        `Saving ${pct(rate)} of income`,
-        `Needs ${pct(p.needs / s.income)}, wants ${pct(p.wants / s.income)}, saved ${pct(rate)}: inside the 50/30/20 guide.`,
-        current ? `Keep it there. That's ${pesos(s.net)} saved so far.` : `That's ${pesos(s.net)} kept in ${name}.`
+        "tip",
+        p.wants - extrasLimit,
+        "Too much is going to extras",
+        `${pct(p.wants / s.income)} of your income went to food, shopping and leisure (${listCats(WANTS)}). A healthy limit is 30%, or ${pesos(extrasLimit)}.`,
+        `Spend ${pesos(p.wants - extrasLimit)} less on extras to save more.`
       )
+    else if (p.needs > essentialsLimit && topNeed)
+      add(
+        "tip",
+        p.needs - essentialsLimit,
+        "Your essentials cost a lot",
+        `${pct(p.needs / s.income)} of your income went to bills, groceries, transport and health (${listCats(NEEDS)}). A healthy limit is 50%, or ${pesos(essentialsLimit)}.`,
+        `Essentials are hard to cut fast. Start with your biggest one, ${lower(topNeed.category)} at ${pesos(topNeed.total)}.`
+      )
+    else if (rate >= 0.2)
+      add("good", 0, `You're saving ${pct(rate)} of your income`, `That's ${pesos(s.net)} ${current ? "so far" : `in ${name}`}. Saving at least 20% is a healthy goal, and you're there.`, "Keep it up.")
     else if (s.net >= 0) {
       const goal = Math.round(s.income * 0.2) - s.net
-      add("tip", goal, `Saving ${pct(rate)} of income`, `The 50/30/20 guide aims to save 20% (${pesos(s.income * 0.2)}); you're at ${pesos(s.net)}.`, `Spend ${pesos(goal)} less to get there.`)
+      add("tip", goal, `You're saving ${pct(rate)} of your income`, `A healthy goal is to save 20%, which is ${pesos(s.income * 0.2)}. You've saved ${pesos(s.net)}.`, `Spend ${pesos(goal)} less to reach it.`)
     }
   } else if (!entries.some((e) => e.income)) {
-    add("tip", 2, "Log your income", "Without it, Tally can't tell whether you're saving or falling behind.", "Type it with a plus sign, like +25000 salary.")
+    add("tip", 2, "Add your income", "Then Tally can tell you whether you're saving money or losing it.", "Type it with a plus sign, like +25000 salary.")
   }
 
-  // A wants category growing against the same days of last month. Needs follow the calendar (rent day, grocery Saturdays).
+  // Extras growing against the same days of last month. Needs follow the calendar (rent day, grocery Saturdays).
   const grown = cats
     .filter((c) => WANTS.includes(c.category) && c.before > 0 && c.total - c.before >= 50000 && c.total >= c.before * 1.25)
     .sort((a, b) => b.total - b.before - (a.total - a.before))[0]
@@ -452,24 +468,22 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
     add(
       "tip",
       save,
-      `${CATEGORIES[grown.category]} is up ${pct((grown.total - grown.before) / grown.before)}`,
-      `${pesos(grown.total)} against ${pesos(grown.before)} by this point in ${prevName}. Mostly ${describeItems(grown.top.slice(0, 2))}.`,
-      current
-        ? `Keep ${CATEGORIES[grown.category].toLowerCase()} to ${pesos(cap)} a day, ${prevName}'s pace, and you'll save about ${pesos(save)} by month-end.`
-        : `${prevName}'s level would have saved ${pesos(save)}.`
+      `You're spending more on ${lower(grown.category)}`,
+      `By this time in ${prevName} you'd spent ${pesos(grown.before)} on it. Now it's ${pesos(grown.total)}, ${pct((grown.total - grown.before) / grown.before)} more. Mostly ${describeItems(grown.top.slice(0, 2))}.`,
+      current ? `Try to keep it under ${pesos(cap)} a day, like last month. You'd save about ${pesos(save)}.` : `Spending like ${prevName} would have saved you ${pesos(save)}.`
     )
   }
 
-  // One wants category taking a big share.
+  // One kind of extra taking a big share.
   const top = cats.find((c) => WANTS.includes(c.category))
   if (top && top.category !== grown?.category && s.spent >= 300000 && top.share >= 0.35) {
     const trim = toMonthEnd(top.total) / 10
     add(
       "tip",
       trim,
-      `${CATEGORIES[top.category]} is ${pct(top.share)} of spending`,
-      `${pesos(top.total)} across ${top.count} buys, about ${pesos(top.average)} each. Biggest: ${describeItems(top.top)}.`,
-      `Trimming it by 10% frees about ${pesos(trim)} a month.`
+      `${CATEGORIES[top.category]} is where most of your money goes`,
+      `It's ${pct(top.share)} of everything you spent: ${pesos(top.total)} over ${top.count} purchases, about ${pesos(top.average)} each. Mostly ${describeItems(top.top)}.`,
+      `Spending 10% less on it saves about ${pesos(trim)} a month.`
     )
   }
 
@@ -488,9 +502,9 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
     add(
       "tip",
       monthly / 2,
-      `${capitalize(w)}: ${r.count}× ${when}`,
-      `${pesos(r.total)} in all, about ${pesos(r.total / r.count)} each${current ? `, on track for ${pesos(monthly)} by month-end` : ""}.`,
-      `Cutting it in half saves about ${pesos(monthly / 2)} a month.`
+      `You spent on ${capitalize(w)} ${r.count} times ${when}`,
+      `That's ${pesos(r.total)}, about ${pesos(r.total / r.count)} each time.${current ? ` At this rate it'll be ${pesos(monthly)} by the end of the month.` : ""}`,
+      `Doing it half as often saves about ${pesos(monthly / 2)} a month.`
     )
   }
 
@@ -502,9 +516,9 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
     add(
       "tip",
       smallSum * 0.3,
-      `${small.length} small buys added up`,
-      `Buys under ₱200 came to ${pesos(smallSum)}, ${pct(smallSum / s.spent)} of your spending ${when}. Most were ${describeItems(topItems(small, 2))}.`,
-      `Small buys slip past a budget. Capping them at ${pesos(cap)} a day saves about ${pesos(toMonthEnd(smallSum) * 0.3)} a month.`
+      "Small purchases are adding up",
+      `${small.length} purchases under ₱200 came to ${pesos(smallSum)}, ${pct(smallSum / s.spent)} of what you spent ${when}. Mostly ${describeItems(topItems(small, 2))}.`,
+      `Try to keep small purchases under ${pesos(cap)} a day. You'd save about ${pesos(toMonthEnd(smallSum) * 0.3)} a month.`
     )
   }
 
@@ -515,9 +529,9 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
     add(
       "tip",
       (a - b) * 8,
-      `Weekends cost ${(a / b).toFixed(1)}× a weekday`,
-      `${pesos(a)} a day on weekends against ${pesos(b)} on weekdays, counting food, shopping and leisure.`,
-      `Cap weekend days at ${pesos(cap)} and you'd save about ${pesos((a - cap) * 8)} a month.`
+      "You spend a lot more on weekends",
+      `On weekends you spend about ${pesos(a)} a day on food, shopping and leisure. On weekdays it's ${pesos(b)}.`,
+      `Try a ${pesos(cap)} limit on weekend days. You'd save about ${pesos((a - cap) * 8)} a month.`
     )
   }
 
@@ -527,15 +541,13 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
     add(
       "tip",
       big.amount * 0.1,
-      `One expense was ${pct(big.amount / s.spent)} of the month`,
+      `One purchase was ${pct(big.amount / s.spent)} of your spending`,
       `${capitalize(big.note || CATEGORIES[big.category])} on ${shortDate(big.date)} cost ${pesos(big.amount)}.`,
-      big.category === "bills"
-        ? `If it comes every month, set aside ${pesos(big.amount / 4)} a week so it never lands all at once.`
-        : "Plan buys this size at the start of the month so the budget makes room for them."
+      big.category === "bills" ? `If you pay this every month, set aside ${pesos(big.amount / 4)} each week so the money is ready.` : "For big purchases like this, plan ahead at the start of the month."
     )
   }
 
-  if (current && p.noSpend >= 3) add("good", 0, `${p.noSpend} no-spend days`, "Days this month with nothing spent at all.", "Aim for one more each week.")
+  if (current && p.noSpend >= 3) add("good", 0, `${p.noSpend} days with no spending`, "Days this month when you didn't spend anything.", "Try to add one more each week.")
 
   return tips
     .sort((x, y) => TONE_ORDER[x.tone] - TONE_ORDER[y.tone] || y.weight - x.weight)

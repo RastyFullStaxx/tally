@@ -46,7 +46,7 @@ type Props = { data: Data; today: string; onBudget: (centavos: number) => void; 
 
 const paceChart = {
   spent: { label: "Spent", color: "var(--chart-spent)" },
-  pace: { label: "Even pace", color: "var(--chart-pace)" },
+  pace: { label: "Budget line", color: "var(--chart-pace)" },
 } satisfies ChartConfig
 
 const trendChart = {
@@ -135,8 +135,8 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
   if (data.budget) {
     if (s.spent > data.budget) status = { tone: "warn", text: current ? `Over budget by ${formatPesoWhole(s.spent - data.budget)}` : `Went ${formatPesoWhole(s.spent - data.budget)} over budget` }
     else if (!current) status = { tone: "good", text: `Finished ${formatPesoWhole(data.budget - s.spent)} under budget` }
-    else if (s.spent > s.pace) status = { tone: "tip", text: `${formatPesoWhole(s.spent - s.pace)} ahead of pace · ${formatPesoWhole(s.perDay)}/day left` }
-    else status = { tone: "good", text: `On track · ${formatPesoWhole(s.perDay)}/day for ${s.daysLeft} ${s.daysLeft === 1 ? "day" : "days"}` }
+    else if (s.spent > s.pace) status = { tone: "tip", text: `${formatPesoWhole(s.spent - s.pace)} more than planned by today · ${formatPesoWhole(s.perDay)} a day left` }
+    else status = { tone: "good", text: `On track · you can spend ${formatPesoWhole(s.perDay)} a day for ${s.daysLeft} more ${s.daysLeft === 1 ? "day" : "days"}` }
   }
 
   const budgetPesos = data.budget / 100
@@ -271,10 +271,11 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
         {s.spent > 0 && (
           <Card className="gap-2 px-3">
             <SectionTitle>How you spent it</SectionTitle>
+            <p className="-mt-1 text-[11px] text-faint">Essentials are bills, groceries, transport and health. Extras are food, shopping and leisure.</p>
             <div className="grid grid-cols-2 gap-1.5">
-              <Stat label="Per day" value={formatPesoWhole(patterns.perDay)} sub={`over ${s.day} ${s.day === 1 ? "day" : "days"}`} />
+              <Stat label="Average a day" value={formatPesoWhole(patterns.perDay)} sub={`across ${s.day} ${s.day === 1 ? "day" : "days"}`} />
               <Stat
-                label="Needs vs wants"
+                label="Essentials vs extras"
                 value={
                   <span className="flex h-5 items-center">
                     <span className="flex h-1 w-full overflow-hidden rounded-sm bg-track">
@@ -283,17 +284,17 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
                     </span>
                   </span>
                 }
-                sub={`Needs ${pct(needsShare)} · Wants ${pct(wantsShare)}`}
+                sub={`Essentials ${pct(needsShare)} · Extras ${pct(wantsShare)}`}
               />
-              {patterns.busiest && <Stat label="Biggest day" value={formatPeso(patterns.busiest.total)} sub={shortDate(patterns.busiest.date)} />}
+              {patterns.busiest && <Stat label="Most spent in a day" value={formatPeso(patterns.busiest.total)} sub={shortDate(patterns.busiest.date)} />}
               {patterns.largest && (
-                <Stat label="Largest expense" value={formatPeso(patterns.largest.amount)} sub={`${capitalize(patterns.largest.note || CATEGORIES[patterns.largest.category])} · ${shortDate(patterns.largest.date)}`} />
+                <Stat label="Biggest purchase" value={formatPeso(patterns.largest.amount)} sub={`${capitalize(patterns.largest.note || CATEGORIES[patterns.largest.category])} · ${shortDate(patterns.largest.date)}`} />
               )}
             </div>
             {(patterns.weekdayDays > 0 || patterns.weekendDays > 0) && (
               <p className="text-[11px] text-muted-foreground tabular-nums">
-                Weekdays {formatPesoWhole(patterns.weekdayAvg)}/day · Weekends {formatPesoWhole(patterns.weekendAvg)}/day · {patterns.noSpend} no-spend {patterns.noSpend === 1 ? "day" : "days"}
-                <span className="text-faint"> (wants only)</span>
+                On extras you spend about {formatPesoWhole(patterns.weekdayAvg)} a day on weekdays and {formatPesoWhole(patterns.weekendAvg)} on weekends. {patterns.noSpend}{" "}
+                {patterns.noSpend === 1 ? "day" : "days"} with no spending.
               </p>
             )}
           </Card>
@@ -319,7 +320,7 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
         {(s.spent > 0 || data.budget > 0) && (
           <Card className="gap-1.5 px-3">
             <div className="flex items-center justify-between gap-3">
-              <SectionTitle>Spending vs even pace</SectionTitle>
+              <SectionTitle>Spending vs budget</SectionTitle>
               <span className="flex shrink-0 items-center gap-2.5 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <span aria-hidden className="h-0.5 w-3 bg-[var(--chart-spent)]" />
@@ -328,11 +329,12 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
                 {data.budget > 0 && (
                   <span className="flex items-center gap-1">
                     <span aria-hidden className="w-3 border-t-2 border-dashed border-[var(--chart-pace)]" />
-                    Even pace
+                    Budget line
                   </span>
                 )}
               </span>
             </div>
+            {data.budget > 0 && <p className="-mt-1 text-[11px] text-faint">Stay under the dotted line to finish the month within budget.</p>}
             <ChartContainer config={paceChart} className="aspect-auto h-32 w-full">
               <ComposedChart data={paceData} margin={{ top: 6, right: 6, bottom: 0, left: 6 }}>
                 <defs>
@@ -372,14 +374,14 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
                     </summary>
                     <div className="space-y-1 pb-2 pl-4 text-xs text-muted-foreground">
                       <p className="tabular-nums">
-                        {c.count} {c.count === 1 ? "buy" : "buys"} · about {formatPesoWhole(c.average)} each
+                        {c.count} {c.count === 1 ? "purchase" : "purchases"} · about {formatPesoWhole(c.average)} each
                       </p>
                       {c.change === null ? (
-                        <p>Nothing here by this point in {prevName}.</p>
+                        <p>No spending here by this time in {prevName}.</p>
                       ) : (
                         <p className={cn("flex items-center gap-1 tabular-nums", c.change > 0 ? "text-over" : "text-income")}>
                           <HugeiconsIcon icon={c.change > 0 ? ArrowUpRight01Icon : ArrowDownRight01Icon} className="size-3 shrink-0" aria-hidden />
-                          {c.change > 0 ? "Up" : "Down"} {pct(Math.abs(c.change))} against the same days of {prevName} ({formatPesoWhole(c.before)})
+                          {pct(Math.abs(c.change))} {c.change > 0 ? "more" : "less"} than by this time in {prevName} ({formatPesoWhole(c.before)})
                         </p>
                       )}
                       <ul className="space-y-0.5">
@@ -394,7 +396,7 @@ export function Insights({ data, today, onBudget, onImport }: Props) {
                         ))}
                       </ul>
                       <p>
-                        Biggest: {capitalize(c.biggest.note || CATEGORIES[c.biggest.category])}, {formatPeso(c.biggest.amount)} on {shortDate(c.biggest.date)}
+                        Biggest purchase: {capitalize(c.biggest.note || CATEGORIES[c.biggest.category])}, {formatPeso(c.biggest.amount)} on {shortDate(c.biggest.date)}
                       </p>
                     </div>
                   </details>

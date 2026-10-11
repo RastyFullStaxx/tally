@@ -105,26 +105,26 @@ test("advise warns about the pace first, then explains what grew and the repeat 
   const tips = advise(doubledLunches(), "2026-10", 1000000, "2026-10-10")
   const titled = (start: string) => tips.find((t) => t.title.startsWith(start))
   assert.equal(tips[0].tone, "warn")
-  assert.equal(tips[0].title, "Heading ₱11,948 over budget")
-  assert.match(tips[0].why, /you'll reach ₱21,948 by month-end/)
-  const food = titled("Food is up 136%")
+  assert.equal(tips[0].title, "You're on track to overspend by ₱11,948")
+  assert.match(tips[0].why, /you'll spend ₱21,948 this month/)
+  const food = titled("You're spending more on food")
   assert.ok(food, JSON.stringify(tips))
-  assert.match(food.why, /Mostly Lunch \(10×, ₱6,000\), Starbucks \(6×, ₱1,080\)/)
-  assert.match(food.action, /^Keep food to ₱300 a day, September's pace, and you'll save about ₱12,648/)
-  assert.ok(titled("Starbucks: 6× this month"), JSON.stringify(tips))
-  assert.ok(!titled("Lunch"), "lunch is a need, not a habit")
+  assert.match(food.why, /Now it's ₱7,080, 136% more\. Mostly Lunch \(10×, ₱6,000\), Starbucks \(6×, ₱1,080\)/)
+  assert.match(food.action, /^Try to keep it under ₱300 a day, like last month\. You'd save about ₱12,648/)
+  assert.ok(titled("You spent on Starbucks 6 times this month"), JSON.stringify(tips))
+  assert.ok(!tips.some((t) => t.title.includes("Lunch")), "lunch is a need, not a habit")
 })
 
 test("in the first week, advise reports budget used instead of a noisy projection", () => {
   const es = [entry("2026-10-01", 8000, "rent", { category: "bills" }), entry("2026-10-03", 1000, "groceries", { category: "groceries" })]
   const tips = advise(es, "2026-10", 2000000, "2026-10-04")
-  const used = tips.find((t) => t.title === "45% of the budget used in 4 days")
+  const used = tips.find((t) => t.title === "You've already used 45% of your budget")
   assert.ok(used, JSON.stringify(tips))
-  assert.match(used.action, /^Keep to ₱393 a day/)
-  assert.ok(!tips.some((t) => t.title.startsWith("Heading")))
-  const big = tips.find((t) => t.title === "One expense was 89% of the month")
+  assert.match(used.action, /^Spend no more than ₱393 a day/)
+  assert.ok(!tips.some((t) => t.title.includes("overspend")))
+  const big = tips.find((t) => t.title === "One purchase was 89% of your spending")
   assert.ok(big, JSON.stringify(tips))
-  assert.match(big.action, /set aside ₱2,000 a week/)
+  assert.match(big.action, /set aside ₱2,000 each week/)
 })
 
 test("without a budget, advise suggests one from last month", () => {
@@ -134,7 +134,7 @@ test("without a budget, advise suggests one from last month", () => {
   assert.match(tips[0].action, /Try ₱2,500/)
 })
 
-test("advise checks income against the 50/30/20 guide", () => {
+test("advise checks income against healthy limits (essentials 50%, extras 30%, savings 20%)", () => {
   const es = [
     entry("2026-10-01", 10000, "salary", { income: true, category: "income" }),
     entry("2026-10-02", 4000, "shopee", { category: "shopping" }),
@@ -142,11 +142,11 @@ test("advise checks income against the 50/30/20 guide", () => {
     entry("2026-10-04", 2000, "meralco", { category: "bills" }),
   ]
   const tips = advise(es, "2026-10", 0, "2026-10-10")
-  const wants = tips.find((t) => t.title === "Wants are 45% of income")
+  const wants = tips.find((t) => t.title === "Too much is going to extras")
   assert.ok(wants, JSON.stringify(tips))
-  assert.match(wants.why, /30% \(₱3,000\)\. Yours: Shopping ₱4,000, Food ₱500/)
-  assert.equal(wants.action, "Bring wants down by ₱1,500 to protect your savings.")
-  assert.ok(tips.some((t) => t.title === "One expense was 62% of the month"), JSON.stringify(tips))
+  assert.match(wants.why, /^45% of your income went to food, shopping and leisure \(Shopping ₱4,000, Food ₱500\)\. A healthy limit is 30%, or ₱3,000\.$/)
+  assert.equal(wants.action, "Spend ₱1,500 less on extras to save more.")
+  assert.ok(tips.some((t) => t.title === "One purchase was 62% of your spending"), JSON.stringify(tips))
 })
 
 test("categoryDetail explains how each category's money went", () => {
