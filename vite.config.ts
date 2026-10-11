@@ -10,9 +10,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // A new deploy downloads in the background while the app is open online and is used from the next
-      // launch, so nothing ever reloads mid-entry.
-      registerType: "autoUpdate",
+      // A new deploy downloads in the background and waits until Update is tapped (UpdateButton),
+      // so nothing reloads mid-entry.
+      registerType: "prompt",
       pwaAssets: { config: true, overrideManifestIcons: true },
       manifest: {
         name: "Tally",

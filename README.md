@@ -35,9 +35,17 @@ npm run preview    # serve dist/ the way the phone will get it
 
 ## Update it
 
-Change the code, run `npm run build`, then deploy again with the same command. The phone downloads
-the new version the next time the app opens online and uses it from the launch after that. Your
-entries aren't touched.
+Change the code, run `npm run build`, then deploy again with the same command.
+
+Phones pick it up on their own. Whenever the app is opened online, and every hour it stays open, it
+checks for a new version and downloads it in the background:
+
+- **When it's ready.** The ↻ button on the Today screen becomes **Update**, with a red dot. Where the
+  phone supports it, the home-screen icon shows a badge too.
+- **Tap Update** to switch to the new version.
+- **Tap ↻ any time** to check by hand.
+
+Your entries aren't touched by an update.
 
 ## Keep your data safe
 

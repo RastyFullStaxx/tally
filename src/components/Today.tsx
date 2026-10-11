@@ -5,6 +5,7 @@ import { cn } from "cn"
 
 import { CategoryChip } from "@/components/category"
 import { Button } from "@/components/ui/button"
+import { UpdateButton } from "@/components/UpdateButton"
 import { CATEGORIES, formatPeso, formatPesoWhole, monthOf, monthSummary, parseLine, shiftDay, toDate, type Data, type Entry, type Parsed } from "@/lib/ledger"
 
 type Props = { data: Data; today: string; onAdd: (entry: Entry) => void; onEdit: (entry: Entry) => void }
@@ -57,6 +58,7 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
           <h1 className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">{day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</h1>
         </div>
         <div className="flex items-center gap-0.5">
+          <UpdateButton />
           {date !== today && (
             <Button variant="secondary" size="sm" className="mr-1 text-primary" onClick={() => setPicked(null)}>
               Today
