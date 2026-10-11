@@ -4,7 +4,7 @@ process.env.TZ = "Asia/Manila"
 
 import assert from "node:assert/strict"
 import test from "node:test"
-import { advise, formatPeso, localDate, mergeBackup, monthSummary, parseLine, shiftDay, shiftMonth, toBackup, type Entry } from "../src/lib/ledger.ts"
+import { advise, categoryDetail, formatPeso, localDate, mergeBackup, monthSummary, parseLine, shiftDay, shiftMonth, spendingPatterns, toBackup, type Entry } from "../src/lib/ledger.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({
@@ -90,32 +90,95 @@ test("monthSummary adds up a month and paces it against the budget", () => {
   assert.equal(monthSummary(es, "2026-09", 0, "2026-10-10").daysLeft, 0)
 })
 
-test("advise warns about the pace first, then names what grew and the repeat habit", () => {
+// September: lunch ₱300 a day. October: lunch ₱600 a day plus Starbucks on the first six days.
+const doubledLunches = () => {
   const es: Entry[] = []
   for (let d = 1; d <= 10; d++) {
     es.push(entry(day("2026-09", d), 300, "lunch"))
     es.push(entry(day("2026-10", d), 600, "lunch"))
   }
   for (let d = 1; d <= 6; d++) es.push(entry(day("2026-10", d), 180, "starbucks"))
-  const tips = advise(es, "2026-10", 1000000, "2026-10-10")
+  return es
+}
+
+test("advise warns about the pace first, then explains what grew and the repeat habit", () => {
+  const tips = advise(doubledLunches(), "2026-10", 1000000, "2026-10-10")
+  const titled = (start: string) => tips.find((t) => t.title.startsWith(start))
   assert.equal(tips[0].tone, "warn")
-  assert.match(tips[0].text, /At this pace you'll spend ₱21,948 by month-end/)
-  assert.ok(tips.some((t) => t.text.startsWith("Food is up 136%")), JSON.stringify(tips))
-  assert.ok(tips.some((t) => t.text.startsWith("Starbucks: 6 times this month, ₱1,080")), JSON.stringify(tips))
-  assert.ok(!tips.some((t) => t.text.startsWith("Lunch")), "lunch is a need, not a habit")
+  assert.equal(tips[0].title, "Heading ₱11,948 over budget")
+  assert.match(tips[0].why, /you'll reach ₱21,948 by month-end/)
+  const food = titled("Food is up 136%")
+  assert.ok(food, JSON.stringify(tips))
+  assert.match(food.why, /Mostly Lunch \(10×, ₱6,000\), Starbucks \(6×, ₱1,080\)/)
+  assert.match(food.action, /^Keep food to ₱300 a day, September's pace, and you'll save about ₱12,648/)
+  assert.ok(titled("Starbucks: 6× this month"), JSON.stringify(tips))
+  assert.ok(!titled("Lunch"), "lunch is a need, not a habit")
 })
 
 test("in the first week, advise reports budget used instead of a noisy projection", () => {
   const es = [entry("2026-10-01", 8000, "rent", { category: "bills" }), entry("2026-10-03", 1000, "groceries", { category: "groceries" })]
   const tips = advise(es, "2026-10", 2000000, "2026-10-04")
-  assert.ok(tips.some((t) => t.text.startsWith("You've used 45% of your budget in 4 days. Keep to ₱393 a day")), JSON.stringify(tips))
-  assert.ok(!tips.some((t) => t.text.startsWith("At this pace")))
+  const used = tips.find((t) => t.title === "45% of the budget used in 4 days")
+  assert.ok(used, JSON.stringify(tips))
+  assert.match(used.action, /^Keep to ₱393 a day/)
+  assert.ok(!tips.some((t) => t.title.startsWith("Heading")))
+  const big = tips.find((t) => t.title === "One expense was 89% of the month")
+  assert.ok(big, JSON.stringify(tips))
+  assert.match(big.action, /set aside ₱2,000 a week/)
 })
 
 test("without a budget, advise suggests one from last month", () => {
   const es = [entry("2026-09-10", 3000, "rent", { category: "bills" }), entry("2026-10-02", 100, "lunch")]
   const tips = advise(es, "2026-10", 0, "2026-10-05")
-  assert.ok(tips[0].text.includes("try ₱2,500"), JSON.stringify(tips))
+  assert.equal(tips[0].title, "Set a monthly budget")
+  assert.match(tips[0].action, /Try ₱2,500/)
+})
+
+test("advise checks income against the 50/30/20 guide", () => {
+  const es = [
+    entry("2026-10-01", 10000, "salary", { income: true, category: "income" }),
+    entry("2026-10-02", 4000, "shopee", { category: "shopping" }),
+    entry("2026-10-03", 500, "lunch"),
+    entry("2026-10-04", 2000, "meralco", { category: "bills" }),
+  ]
+  const tips = advise(es, "2026-10", 0, "2026-10-10")
+  const wants = tips.find((t) => t.title === "Wants are 45% of income")
+  assert.ok(wants, JSON.stringify(tips))
+  assert.match(wants.why, /30% \(₱3,000\)\. Yours: Shopping ₱4,000, Food ₱500/)
+  assert.equal(wants.action, "Bring wants down by ₱1,500 to protect your savings.")
+  assert.ok(tips.some((t) => t.title === "One expense was 62% of the month"), JSON.stringify(tips))
+})
+
+test("categoryDetail explains how each category's money went", () => {
+  const [food] = categoryDetail(doubledLunches(), "2026-10", "2026-10-10")
+  assert.equal(food.category, "food")
+  assert.equal(food.total, 708000)
+  assert.equal(food.count, 16)
+  assert.equal(food.average, 44250)
+  assert.equal(food.before, 300000)
+  assert.equal(Math.round((food.change ?? 0) * 100), 136)
+  assert.deepEqual(food.top, [
+    { item: "lunch", count: 10, total: 600000 },
+    { item: "starbucks", count: 6, total: 108000 },
+  ])
+  assert.equal(food.biggest.amount, 60000)
+})
+
+test("spendingPatterns splits needs from wants and finds the big days", () => {
+  const es = [
+    entry("2026-10-01", 8000, "rent", { category: "bills" }),
+    entry("2026-10-03", 1000, "puregold", { category: "groceries" }),
+    entry("2026-10-03", 200, "lunch"),
+    entry("2026-10-04", 500, "shopee", { category: "shopping" }),
+  ]
+  const p = spendingPatterns(es, "2026-10", "2026-10-05")
+  assert.equal(p.needs, 900000)
+  assert.equal(p.wants, 70000)
+  assert.equal(p.other, 0)
+  assert.equal(p.perDay, 194000)
+  assert.deepEqual(p.busiest, { date: "2026-10-01", total: 800000 })
+  assert.equal(p.largest?.note, "rent")
+  assert.equal(p.noSpend, 1)
 })
 
 test("a backup restores to the same data and never duplicates (the restore drill)", () => {

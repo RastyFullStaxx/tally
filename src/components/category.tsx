@@ -11,7 +11,7 @@ export function CategoryChip({ category, className }: { category: CategoryId; cl
   const color = categoryColor(category)
   return (
     <span
-      className={cn("shrink-0 rounded-full px-2 py-1 text-[11px] leading-none font-medium", className)}
+      className={cn("shrink-0 rounded-sm px-1.5 py-0.5 text-[11px] leading-none font-medium", className)}
       style={{
         color: `color-mix(in oklab, ${color} 70%, white)`,
         backgroundColor: `color-mix(in oklab, ${color} 16%, transparent)`,

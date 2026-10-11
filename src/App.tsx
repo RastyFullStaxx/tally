@@ -49,9 +49,9 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto min-h-svh max-w-md pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)]">
+    <div className="mx-auto min-h-svh max-w-md pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+4rem)]">
       {!saved && (
-        <p role="alert" className="sticky top-[env(safe-area-inset-top)] z-30 mx-4 mt-3 flex items-center gap-2 rounded-2xl bg-over/15 px-4 py-3 text-sm text-over backdrop-blur-md">
+        <p role="alert" className="sticky top-[env(safe-area-inset-top)] z-30 mx-3 mt-2 flex items-center gap-2 rounded-md bg-over/15 px-3 py-2 text-sm text-over backdrop-blur-md">
           <HugeiconsIcon icon={Alert02Icon} className="size-4 shrink-0" aria-hidden />
           Couldn't save. Export a backup from Insights.
         </p>
@@ -67,8 +67,8 @@ export default function App() {
         </main>
       )}
 
-      <nav aria-label="Screens" className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex justify-center">
-        <div className="pointer-events-auto flex gap-1 rounded-full border border-white/[0.08] bg-raised/85 p-1.5 shadow-xl shadow-black/40 backdrop-blur-xl">
+      <nav aria-label="Screens" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-raised pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto grid max-w-md grid-cols-2">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -76,11 +76,11 @@ export default function App() {
               onClick={() => setTab(t.id)}
               aria-current={tab === t.id ? "page" : undefined}
               className={cn(
-                "flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium text-muted-foreground transition-colors duration-200",
-                tab === t.id ? "bg-primary text-primary-foreground" : "active:bg-white/[0.06]"
+                "flex h-11 items-center justify-center gap-1.5 border-t-2 text-[13px] font-medium transition-colors duration-150",
+                tab === t.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground active:bg-white/[0.04]"
               )}
             >
-              <HugeiconsIcon icon={t.icon} className="size-[18px]" aria-hidden />
+              <HugeiconsIcon icon={t.icon} className={cn("size-4", tab === t.id && "text-primary")} aria-hidden />
               {t.label}
             </button>
           ))}

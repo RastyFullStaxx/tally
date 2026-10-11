@@ -54,13 +54,13 @@ function EntryForm({ entry, onSave, onDelete }: { entry: Entry; onSave: (entry: 
   }
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-4 overflow-y-auto px-2 pb-[env(safe-area-inset-bottom)]">
-      <DrawerHeader className="pb-0">
+    <form onSubmit={save} className="flex flex-col gap-2.5 overflow-y-auto px-1 pb-[env(safe-area-inset-bottom)]">
+      <DrawerHeader className="p-2 pb-0">
         <DrawerTitle>Edit entry</DrawerTitle>
         <DrawerDescription className="sr-only">Change the amount, note, category or date, or delete the entry.</DrawerDescription>
       </DrawerHeader>
 
-      <label className="flex items-baseline justify-center gap-1 text-[2.5rem] font-semibold tracking-[-0.02em]">
+      <label className="flex items-baseline justify-center gap-1 text-[1.75rem] font-semibold tracking-[-0.02em]">
         <span className="text-muted-foreground">₱</span>
         <input
           value={amount}
@@ -73,7 +73,7 @@ function EntryForm({ entry, onSave, onDelete }: { entry: Entry; onSave: (entry: 
         />
       </label>
 
-      <div role="radiogroup" aria-label="Type" className="mx-auto grid w-full max-w-xs grid-cols-2 rounded-full bg-background/70 p-1">
+      <div role="radiogroup" aria-label="Type" className="grid w-full grid-cols-2 gap-0.5 rounded-md bg-background/70 p-0.5">
         {[false, true].map((isIncome) => (
           <Button
             key={String(isIncome)}
@@ -82,17 +82,17 @@ function EntryForm({ entry, onSave, onDelete }: { entry: Entry; onSave: (entry: 
             role="radio"
             aria-checked={income === isIncome}
             onClick={() => setIncome(isIncome)}
-            className={cn("text-muted-foreground", income === isIncome && "bg-accent text-foreground hover:bg-accent")}
+            className={cn("h-7 rounded-sm text-muted-foreground", income === isIncome && "bg-accent text-foreground hover:bg-accent")}
           >
             {isIncome ? "Income" : "Expense"}
           </Button>
         ))}
       </div>
 
-      <Input value={note} onChange={(e) => setNote(e.target.value)} aria-label="Note" placeholder="What it was" className="h-11 px-4" />
+      <Input value={note} onChange={(e) => setNote(e.target.value)} aria-label="Note" placeholder="What it was" className="h-9 px-2.5" />
 
       {!income && (
-        <fieldset className="grid grid-cols-4 gap-2">
+        <fieldset className="grid grid-cols-4 gap-1.5">
           <legend className="sr-only">Category</legend>
           {CATEGORY_ORDER.map((c) => (
             <Button
@@ -101,7 +101,7 @@ function EntryForm({ entry, onSave, onDelete }: { entry: Entry; onSave: (entry: 
               variant="ghost"
               aria-pressed={category === c}
               onClick={() => setCategory(c)}
-              className="h-10 rounded-2xl bg-white/[0.05] px-1 text-xs text-muted-foreground"
+              className="h-8 rounded-md bg-white/[0.05] px-1 text-xs text-muted-foreground"
               style={
                 category === c
                   ? {
@@ -118,13 +118,13 @@ function EntryForm({ entry, onSave, onDelete }: { entry: Entry; onSave: (entry: 
         </fieldset>
       )}
 
-      <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Date" className="h-11 px-4" />
+      <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Date" className="h-9 px-2.5" />
 
-      <DrawerFooter className="px-0">
-        <Button type="submit" size="lg" className="h-12 text-base" disabled={!cents}>
+      <DrawerFooter className="gap-1.5 px-0 pt-1">
+        <Button type="submit" size="lg" disabled={!cents}>
           Save
         </Button>
-        <Button type="button" variant="ghost" size="lg" className="h-12 text-over hover:bg-over/10 hover:text-over" onClick={() => (confirming ? onDelete() : setConfirming(true))}>
+        <Button type="button" variant="ghost" size="lg" className="text-over hover:bg-over/10 hover:text-over" onClick={() => (confirming ? onDelete() : setConfirming(true))}>
           {confirming ? "Tap again to delete" : "Delete entry"}
         </Button>
       </DrawerFooter>

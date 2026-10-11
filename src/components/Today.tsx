@@ -48,30 +48,30 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
 
   return (
     <div className="flex flex-col">
-      <header className="flex items-end justify-between gap-3 pt-6 pr-3 pb-1 pl-8">
+      <header className="flex items-end justify-between gap-3 pt-4 pr-2 pb-0.5 pl-8">
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground">
             {day.toLocaleDateString("en-PH", { weekday: "long" })}
             {otherYear && ` · ${day.getFullYear()}`}
           </p>
-          <h1 className="text-[2.125rem] leading-tight font-bold tracking-[-0.01em]">{day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</h1>
+          <h1 className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">{day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</h1>
         </div>
-        <div className="flex items-center gap-0.5 pb-1.5">
+        <div className="flex items-center gap-0.5">
           {date !== today && (
             <Button variant="secondary" size="sm" className="mr-1 text-primary" onClick={() => setPicked(null)}>
               Today
             </Button>
           )}
           <Button variant="ghost" size="icon-lg" aria-label="Previous day" onClick={() => go(-1)}>
-            <HugeiconsIcon icon={ArrowLeft01Icon} className="size-5" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
           </Button>
           <Button variant="ghost" size="icon-lg" aria-label="Next day" disabled={date === today} onClick={() => go(1)}>
-            <HugeiconsIcon icon={ArrowRight01Icon} className="size-5" />
+            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
           </Button>
         </div>
       </header>
 
-      <p className="flex items-center gap-2 pr-5 pb-4 pl-8 text-xs text-muted-foreground">
+      <p className="flex items-center gap-2 pr-4 pb-2 pl-8 text-xs text-muted-foreground">
         {data.budget > 0 ? (
           <>
             <span aria-hidden className={cn("size-1.5 rounded-full", month.spent > data.budget ? "bg-over" : "bg-income")} />
@@ -87,7 +87,7 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
       <div className="relative">
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-[1.375rem] w-px bg-margin" />
 
-        <form onSubmit={add} className="flex h-12 items-center gap-2 border-b border-margin pr-5 pl-8">
+        <form onSubmit={add} className="flex h-10 items-center gap-2 border-b border-margin pr-4 pl-8">
           <input
             ref={input}
             value={text}
@@ -105,7 +105,7 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
             className="h-full min-w-0 flex-1 bg-transparent text-base caret-primary outline-none placeholder:text-faint"
           />
           {preview && (
-            <span className="flex shrink-0 items-center gap-1 rounded-full border border-dashed border-primary/40 px-2 py-1 text-[11px] leading-none text-primary">
+            <span className="flex shrink-0 items-center gap-1 rounded-sm border border-dashed border-primary/40 px-1.5 py-0.5 text-[11px] leading-none text-primary">
               {CATEGORIES[preview.category]} · {preview.income && "+"}
               {formatPeso(preview.amount)}
               <HugeiconsIcon icon={ArrowTurnBackwardIcon} className="size-3" aria-hidden />
@@ -114,7 +114,7 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
         </form>
 
         {needsAmount && (
-          <p role="alert" className="border-b border-rule py-3 pr-5 pl-8 text-sm text-over">
+          <p role="alert" className="border-b border-rule py-2 pr-4 pl-8 text-sm text-over">
             Add an amount, like coffee 120
           </p>
         )}
@@ -122,7 +122,7 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
         <ul>
           {lines.map((e) => (
             <li key={e.id} className="border-b border-rule transition-[opacity,translate] duration-300 ease-out starting:-translate-y-1.5 starting:opacity-0 motion-reduce:transition-none">
-              <button type="button" onClick={() => onEdit(e)} className="flex h-12 w-full items-center gap-2 pr-5 pl-8 text-left transition-colors active:bg-white/[0.04]">
+              <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-white/[0.04]">
                 <span className="min-w-0 truncate">{e.note || CATEGORIES[e.category]}</span>
                 <CategoryChip category={e.category} />
                 <span className={cn("ml-auto shrink-0 font-medium tabular-nums", e.income && "text-income")}>
@@ -134,14 +134,14 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
           ))}
         </ul>
 
-        {Array.from({ length: Math.max(3, 8 - lines.length) }, (_, i) => (
-          <div key={i} aria-hidden onClick={focus} className="flex h-12 items-center border-b border-rule pl-8 text-sm text-faint">
+        {Array.from({ length: Math.max(4, 12 - lines.length) }, (_, i) => (
+          <div key={i} aria-hidden onClick={focus} className="flex h-9 items-center border-b border-rule pl-8 text-sm text-faint">
             {i === 0 && data.entries.length === 0 && "Type a line like jollibee 245, then return."}
           </div>
         ))}
       </div>
 
-      <p className="flex justify-between pt-3 pr-5 pl-8 text-xs text-muted-foreground">
+      <p className="flex justify-between pt-2 pr-4 pl-8 text-xs text-muted-foreground">
         <span>
           {lines.length} {lines.length === 1 ? "entry" : "entries"}
         </span>
