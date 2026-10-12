@@ -26,12 +26,12 @@ Tally is a progressive web app, installed from Safari with Add to Home Screen.
   - Dates are the phone's local `YYYY-MM-DD`.
 - **No backend.** There are no accounts and no sync.
 - **Backups.** Export and Import write and read a JSON file through the share sheet (Save to Files).
-- **Spending tips.** They are worked out on the phone from rules over the user's own entries (`advise()` in `src/lib/ledger.ts`). No AI service is involved, so they work offline and send nothing anywhere.
+- **Spending tips.** They are worked out on the phone from rules over the user's own entries (`advise()`, now in `src/lib/insights.ts`; what learns on the phone is in ADR 0002). No AI service is involved, so they work offline and send nothing anywhere.
 
 ## Consequences
 
 - **Free.** Installing and updating cost nothing, and nothing expires.
-- **Updates.** A deploy reaches the phone the next time the app opens online and is used from the launch after that.
+- **Updates.** A deploy downloads in the background the next time the app opens online, then waits for the user to tap Update (prompt mode, since 2026-10-11; see the README).
 - **The URL is permanent.** The data is bound to the origin, so moving to a new address starts an empty app. Export, then Import, carries data across.
 - **Deleting the Home Screen icon deletes the data.** Backups are manual, and the restore path is tested in `tests/ledger.test.ts`.
 - **Storage ceiling.** `localStorage` holds about 5 MB, which is ten or more years at ten entries a day. Move to IndexedDB if it ever gets close.

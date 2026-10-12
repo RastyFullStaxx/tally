@@ -7,7 +7,7 @@ export const CATEGORY_ORDER: CategoryId[] = ["food", "bills", "groceries", "tran
 
 export const categoryColor = (category: CategoryId) => `var(--cat-${category})`
 
-export function CategoryChip({ category, className }: { category: CategoryId; className?: string }) {
+export function CategoryChip({ category, label, className }: { category: CategoryId; label?: string; className?: string }) {
   const color = categoryColor(category)
   return (
     <span
@@ -17,7 +17,7 @@ export function CategoryChip({ category, className }: { category: CategoryId; cl
         backgroundColor: `color-mix(in oklab, ${color} 16%, transparent)`,
       }}
     >
-      {CATEGORIES[category]}
+      {label ?? CATEGORIES[category]}
     </span>
   )
 }

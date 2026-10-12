@@ -90,6 +90,7 @@
     --cat-health: #02a6ad;
     --cat-other: #8d9bb8;
     --cat-income: #6fd3a8;
+    --cat-savings: #d8b56a;
 }
 
 @layer base {

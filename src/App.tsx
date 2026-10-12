@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react"
-import { Alert02Icon, ChartBarLineIcon, NotebookIcon } from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
+import { useEffect, useRef, useState, type ChangeEvent } from "react"
 import { cn } from "cn"
 
+import { AppMenu, useInstall, useUpdates, type Sheet } from "@/components/AppMenu"
 import { EntryDrawer } from "@/components/EntryDrawer"
+import { AlertIcon, ChartIcon, NotebookIcon } from "@/components/icons"
 import { Insights } from "@/components/Insights"
+import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
+import { addVote, tipFeatures, type Tip } from "@/lib/insights"
 import { localDate, type Data, type Entry } from "@/lib/ledger"
-import { load, save } from "@/lib/store"
+import { exportBackup, importBackup, load, save } from "@/lib/store"
 
 const TABS = [
   { id: "today", label: "Today", icon: NotebookIcon },
-  { id: "insights", label: "Insights", icon: ChartBarLineIcon },
+  { id: "insights", label: "Insights", icon: ChartIcon },
 ] as const
 
 /** Follows the clock, including when iOS resumes the app from the background the next morning. */
@@ -25,13 +27,22 @@ function useToday() {
   return today
 }
 
+// Clock readings happen out here, away from render.
+const keyed = <T,>(value: T) => ({ ...value, key: Date.now() })
+
 export default function App() {
   const today = useToday()
+  const updates = useUpdates()
+  const install = useInstall()
   const [data, setData] = useState(load)
   const [saved, setSaved] = useState(true)
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("today")
   const [editing, setEditing] = useState<{ entry: Entry; key: number } | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
 
   const commit = (next: Data) => {
     setData(next)
@@ -44,26 +55,58 @@ export default function App() {
     })
   const remove = (id: string) => commit({ ...data, entries: data.entries.filter((e) => e.id !== id) })
   const edit = (entry: Entry) => {
-    setEditing({ entry, key: Date.now() })
+    setEditing(keyed({ entry }))
     setDrawerOpen(true)
   }
+  const open = (kind: Sheet) => {
+    setSheet(keyed({ kind }))
+    setSheetOpen(true)
+  }
+  const say = (text: string) => {
+    setNotice(text)
+    setTimeout(() => setNotice((shown) => (shown === text ? null : shown)), 4000)
+  }
+  const vote = (tip: Tip, value: 1 | -1) => {
+    commit({ ...data, votes: addVote(data.votes, { id: tip.id, kind: tip.kind, vote: value, at: Date.now(), features: tipFeatures(data.entries, data.budget, today) }) })
+    say(value > 0 ? "Thanks. Tally will show more tips like this." : "Got it. Fewer tips like this.")
+  }
+
+  async function handleImport(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+    try {
+      const { data: merged, added, skipped } = await importBackup(file, data)
+      commit(merged)
+      say(`Imported ${added} ${added === 1 ? "entry" : "entries"}${skipped ? `, skipped ${skipped} unreadable` : ""}.`)
+    } catch (error) {
+      say((error as Error).message)
+    }
+  }
+
+  const menu = <AppMenu updates={updates} install={install} onOpen={open} onExport={() => exportBackup(data)} onImport={() => fileInput.current?.click()} say={say} />
 
   return (
     <div className="mx-auto min-h-svh max-w-md pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+4rem)]">
       {!saved && (
         <p role="alert" className="sticky top-[env(safe-area-inset-top)] z-30 mx-3 mt-2 flex items-center gap-2 rounded-md bg-over/15 px-3 py-2 text-sm text-over backdrop-blur-md">
-          <HugeiconsIcon icon={Alert02Icon} className="size-4 shrink-0" aria-hidden />
-          Couldn't save. Export a backup from Insights.
+          <AlertIcon className="size-4 shrink-0" />
+          Couldn't save. Export a backup from the ··· menu.
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+3.5rem)] z-50 mx-auto max-w-md rounded-md border border-border bg-raised px-3 py-2 text-sm shadow-lg">
+          {notice}
         </p>
       )}
 
       {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts) only exists while open. */}
       <main hidden={tab !== "today"} className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
-        <Today data={data} today={today} onAdd={upsert} onEdit={edit} />
+        <Today data={data} today={today} menu={menu} onAdd={upsert} onEdit={edit} onEditBudget={() => open("budget")} />
       </main>
       {tab === "insights" && (
         <main className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
-          <Insights data={data} today={today} onBudget={(budget) => commit({ ...data, budget })} onImport={commit} />
+          <Insights data={data} today={today} menu={menu} onEditBudget={() => open("budget")} onEditGoal={() => open("goal")} onVote={vote} />
         </main>
       )}
 
@@ -80,14 +123,24 @@ export default function App() {
                 tab === t.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground active:bg-white/[0.04]"
               )}
             >
-              <HugeiconsIcon icon={t.icon} className={cn("size-4", tab === t.id && "text-primary")} aria-hidden />
+              <t.icon className={cn("size-4", tab === t.id && "text-primary")} />
               {t.label}
             </button>
           ))}
         </div>
       </nav>
 
+      <input ref={fileInput} type="file" accept="application/json,.json" className="sr-only" tabIndex={-1} aria-hidden onChange={handleImport} />
       <EntryDrawer editing={editing} open={drawerOpen} onOpenChange={setDrawerOpen} onSave={upsert} onDelete={remove} />
+      <Sheets
+        sheet={sheet}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        budget={data.budget}
+        goal={data.goal}
+        onBudget={(budget) => commit({ ...data, budget })}
+        onGoal={(goal) => commit({ ...data, goal })}
+      />
     </div>
   )
 }

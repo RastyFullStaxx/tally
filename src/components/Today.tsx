@@ -1,30 +1,36 @@
-import { useRef, useState, type FormEvent } from "react"
-import { ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon } from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
+import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { cn } from "cn"
 
 import { CategoryChip } from "@/components/category"
+import { LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
-import { UpdateButton } from "@/components/UpdateButton"
-import { CATEGORIES, formatPeso, formatPesoWhole, monthOf, monthSummary, parseLine, shiftDay, toDate, type Data, type Entry, type Parsed } from "@/lib/ledger"
+import { predictCategory, trainCategoryModel } from "@/lib/classifier"
+import { safeToSpend } from "@/lib/insights"
+import { CATEGORIES, formatPeso, formatPesoWhole, isExpense, isIncome, isSaving, monthOf, monthSummary, parseLine, shiftDay, toDate, type Data, type Entry, type Parsed } from "@/lib/ledger"
 
-type Props = { data: Data; today: string; onAdd: (entry: Entry) => void; onEdit: (entry: Entry) => void }
+type Props = { data: Data; today: string; menu: ReactNode; onAdd: (entry: Entry) => void; onEdit: (entry: Entry) => void; onEditBudget: () => void }
 
 // Ids and clock readings are minted out here, away from render.
 const stamp = (parsed: Parsed, date: string): Entry => ({ id: crypto.randomUUID(), date, createdAt: Date.now(), ...parsed })
 
+/** A line's label: savings say which way the money moved. */
+const labelOf = (e: Pick<Entry, "category" | "income">) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
+
 /** The launch screen: one ruled page per day, and the first line is where you type. */
-export function Today({ data, today, onAdd, onEdit }: Props) {
+export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props) {
   const [picked, setPicked] = useState<string | null>(null)
   const [text, setText] = useState("")
   const [needsAmount, setNeedsAmount] = useState(false)
   const input = useRef<HTMLInputElement>(null)
+  // Retrained whenever entries change, so every save and every corrected category teaches the next guess.
+  const model = useMemo(() => trainCategoryModel(data.entries), [data.entries])
 
   const date = picked && picked < today ? picked : today
-  const preview = text.trim() ? parseLine(text, data.entries) : null
+  const preview = text.trim() ? parseLine(text, (note, amount) => predictCategory(model, note, amount).category) : null
   const lines = data.entries.filter((e) => e.date === date).sort((a, b) => b.createdAt - a.createdAt)
-  const spent = lines.reduce((sum, e) => (e.income ? sum : sum + e.amount), 0)
+  const spent = lines.reduce((sum, e) => (isExpense(e) ? sum + e.amount : sum), 0)
   const month = monthSummary(data.entries, monthOf(today), data.budget, today)
+  const safe = safeToSpend(data.entries, data.budget, today)
   const day = toDate(date)
   const otherYear = day.getFullYear() !== toDate(today).getFullYear()
   const focus = () => input.current?.focus()
@@ -58,33 +64,39 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
           <h1 className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">{day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</h1>
         </div>
         <div className="flex items-center gap-0.5">
-          <UpdateButton />
           {date !== today && (
             <Button variant="secondary" size="sm" className="mr-1 text-primary" onClick={() => setPicked(null)}>
               Today
             </Button>
           )}
           <Button variant="ghost" size="icon-lg" aria-label="Previous day" onClick={() => go(-1)}>
-            <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
+            <LeftIcon className="size-4" />
           </Button>
           <Button variant="ghost" size="icon-lg" aria-label="Next day" disabled={date === today} onClick={() => go(1)}>
-            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+            <RightIcon className="size-4" />
           </Button>
+          {menu}
         </div>
       </header>
 
-      <p className="flex items-center gap-2 pr-4 pb-2 pl-8 text-xs text-muted-foreground">
-        {data.budget > 0 ? (
-          <>
-            <span aria-hidden className={cn("size-1.5 rounded-full", month.spent > data.budget ? "bg-over" : "bg-income")} />
-            {month.spent > data.budget
-              ? `${formatPesoWhole(month.spent - data.budget)} over budget this month`
-              : `${formatPesoWhole(data.budget - month.spent)} left this month · ${formatPesoWhole(month.perDay)}/day`}
-          </>
-        ) : (
-          `${formatPeso(month.spent)} spent this month`
-        )}
-      </p>
+      {safe ? (
+        <button type="button" onClick={onEditBudget} aria-label="Safe to spend today. Edit monthly budget" className="flex w-full items-start gap-2 pr-4 pb-2 pl-8 text-left text-xs">
+          <span aria-hidden className={cn("mt-1 size-1.5 shrink-0 rounded-full", safe.today >= 0 ? "bg-income" : "bg-over")} />
+          <span className="min-w-0 flex-1">
+            <span className="text-muted-foreground">{safe.today >= 0 ? "Safe to spend today " : "Over today's safe amount by "}</span>
+            <span className={cn("font-medium tabular-nums", safe.today >= 0 ? "text-foreground" : "text-over")}>{formatPesoWhole(Math.abs(safe.today))}</span>
+            {safe.upcoming > 0 && <span className="block text-faint">{formatPesoWhole(safe.upcoming)} in bills still to come this month</span>}
+          </span>
+          <PencilIcon className="mt-px size-3.5 shrink-0 text-faint" />
+        </button>
+      ) : (
+        <p className="flex items-center gap-1 pr-4 pb-2 pl-8 text-xs text-muted-foreground">
+          {formatPeso(month.spent)} spent this month ·
+          <button type="button" onClick={onEditBudget} className="text-primary">
+            Set a budget
+          </button>
+        </p>
+      )}
 
       <div className="relative">
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-[1.375rem] w-px bg-margin" />
@@ -108,9 +120,9 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
           />
           {preview && (
             <span className="flex shrink-0 items-center gap-1 rounded-sm border border-dashed border-primary/40 px-1.5 py-0.5 text-[11px] leading-none text-primary">
-              {CATEGORIES[preview.category]} · {preview.income && "+"}
+              {labelOf(preview)} · {preview.income && !isSaving(preview) && "+"}
               {formatPeso(preview.amount)}
-              <HugeiconsIcon icon={ArrowTurnBackwardIcon} className="size-3" aria-hidden />
+              <ReturnIcon className="size-3" />
             </span>
           )}
         </form>
@@ -125,10 +137,10 @@ export function Today({ data, today, onAdd, onEdit }: Props) {
           {lines.map((e) => (
             <li key={e.id} className="border-b border-rule transition-[opacity,translate] duration-300 ease-out starting:-translate-y-1.5 starting:opacity-0 motion-reduce:transition-none">
               <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-white/[0.04]">
-                <span className="min-w-0 truncate">{e.note || CATEGORIES[e.category]}</span>
-                <CategoryChip category={e.category} />
-                <span className={cn("ml-auto shrink-0 font-medium tabular-nums", e.income && "text-income")}>
-                  {e.income && "+"}
+                <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
+                <CategoryChip category={e.category} label={labelOf(e)} />
+                <span className={cn("ml-auto shrink-0 font-medium tabular-nums", isIncome(e) && "text-income", isSaving(e) && "text-primary")}>
+                  {isIncome(e) && "+"}
                   {formatPeso(e.amount)}
                 </span>
               </button>
