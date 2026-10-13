@@ -32,6 +32,7 @@
     --color-track: var(--track);
     --color-faint: var(--faint);
     --color-income: var(--income);
+    --color-savings: var(--cat-savings);
     --color-over: var(--over);
     --color-rule: var(--rule);
     --color-margin: var(--margin);
@@ -90,7 +91,7 @@
     --cat-health: #02a6ad;
     --cat-other: #8d9bb8;
     --cat-income: #6fd3a8;
-    --cat-savings: #d8b56a;
+    --cat-savings: #d4ec5c; /* lime: >=16 normal / >=14 CVD from every other colour on #111D35 */
 }
 
 @layer base {

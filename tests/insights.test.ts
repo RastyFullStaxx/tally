@@ -13,6 +13,7 @@ import {
   savingsSummary,
   spendingPatterns,
   unusualWeeks,
+  usualMonth,
 } from "../src/lib/insights.ts"
 import { shiftDay, type Entry, type TipVote } from "../src/lib/ledger.ts"
 
@@ -114,7 +115,7 @@ test("advise checks income against healthy limits (essentials 50%, extras 30%, s
   const wants = tips.find((t) => t.title === "Too much is going to extras")
   assert.ok(wants, JSON.stringify(tips))
   assert.match(wants.why, /^45% of your income went to food, shopping and leisure \(Shopping ₱4,000, Food ₱500\)\. A healthy limit is 30%, or ₱3,000\.$/)
-  assert.equal(wants.action, "Spend ₱1,500 less on extras to save more.")
+  assert.equal(wants.action, "No more extras this month. In November, keep them under ₱3,000.")
   assert.ok(tips.some((t) => t.title === "One purchase was 62% of your spending"), JSON.stringify(tips))
   assert.ok(tips.some((t) => t.title === "Pay yourself first"), JSON.stringify(tips))
 })
@@ -209,4 +210,139 @@ test("savingsSummary totals deposits and withdrawals and dates the goal", () => 
   assert.equal(Math.round(s.monthlyAvg), 266667)
   assert.equal(s.goal?.progress, 0.16)
   assert.equal(s.goal?.eta, "February 2028")
+})
+
+// ---------------------------------------------------------------- advice for every situation
+
+// 13 October, as on the phone: a ₱10,000 budget gone by the 13th, ₱23,700 earned, ₱10,000 saved toward an M5 Pro.
+const myOctober = () => [
+  entry("2026-10-01", 23700, "salary", { income: true, category: "income" }),
+  entry("2026-10-02", 10000, "", { category: "savings" }),
+  entry("2026-10-02", 294, "lunch"),
+  entry("2026-10-03", 1389, "internet", { category: "bills" }),
+  entry("2026-10-04", 294, "lunch"),
+  entry("2026-10-05", 610, "inn", { category: "leisure" }),
+  entry("2026-10-06", 1500, "shopee", { category: "shopping" }),
+  entry("2026-10-07", 294, "lunch"),
+  entry("2026-10-08", 520, "miedsa", { category: "leisure" }),
+  entry("2026-10-09", 156, "grab", { category: "transport" }),
+  entry("2026-10-09", 1200, "uniqlo", { category: "shopping" }),
+  entry("2026-10-10", 1132, "games", { category: "leisure" }),
+  entry("2026-10-11", 156, "grab", { category: "transport" }),
+  entry("2026-10-12", 864, "shoes", { category: "shopping" }),
+  entry("2026-10-13", 2500, "yabu", { category: "leisure" }),
+]
+
+test("over budget mid-month: where it stands, then a plan for the days left", () => {
+  const tips = advise(myOctober(), "2026-10", 1000000, "2026-10-13", { goal: { name: "M5 Pro", amount: 15000000 } })
+  assert.deepEqual(
+    tips.map((t) => t.title),
+    [
+      "Your budget ran out on 13 Oct",
+      "You still have ₱2,791 this month",
+      "A budget you can keep: ₱11,500",
+      "One purchase was 23% of your spending",
+      "You're saving 42% of your income",
+      "M5 Pro: 7% of the way",
+    ]
+  )
+  const [over, cash, fit, big, rate, goal] = tips
+  assert.equal(over.tone, "warn")
+  assert.equal(over.why, "₱10,909 of ₱10,000 spent, with 19 days to go. Extras were 84% of it: Leisure ₱4,762, Shopping ₱3,564.")
+  assert.equal(over.action, "Essentials only until the 1st: about ₱432 for groceries, transport and health. That ends October near ₱11,341.")
+  assert.equal(cash.why, "You earned ₱23,700, spent ₱10,909 and saved ₱10,000.")
+  assert.equal(cash.action, "Pay for the rest of October from this, not from savings.")
+  assert.equal(fit.action, "Set November to ₱11,500. You'd still save ₱10,000 and keep about ₱2,200 spare.")
+  assert.equal(big.why, "Yabu on 13 Oct cost ₱2,500. Without it you'd be ₱1,591 under budget.")
+  assert.match(big.action, /wait 48 hours before any extra over ₱1,000/)
+  assert.equal(rate.why, "₱10,000 of ₱23,700, twice the 20% to aim for.")
+  assert.equal(goal.action, "Moving a quarter of your leisure spending (about ₱1,191 a month) to savings gets you there a month sooner.")
+  assert.ok(!tips.some((t) => t.kind === "extras-high" || t.kind === "category-share"), "the plan already named the extras")
+})
+
+test("heading over with a daily limit below what essentials cost: say so, and give the real landing", () => {
+  const es: Entry[] = [entry("2026-10-02", 3000, "shopee", { category: "shopping" })]
+  for (let d = 1; d <= 10; d++) es.push(entry(day("2026-10", d), 400, "puregold", { category: "groceries" }))
+  const [tip] = advise(es, "2026-10", 1000000, "2026-10-10")
+  assert.equal(tip.title, "You're on track to overspend by ₱11,700")
+  assert.equal(tip.action, "Essentials alone usually cost about ₱400 a day, so ₱10,000 can't be met now. Skip extras and you'll land near ₱15,400, ₱5,400 over.")
+})
+
+test("spending above income is a timing note when payday is still ahead, a warning when it isn't", () => {
+  const es = [
+    entry("2026-09-15", 15000, "salary", { income: true, category: "income" }),
+    entry("2026-09-30", 15000, "salary", { income: true, category: "income" }),
+    entry("2026-09-20", 5000, "rent", { category: "bills" }),
+    entry("2026-10-15", 15000, "salary", { income: true, category: "income" }),
+    entry("2026-10-16", 18000, "rent", { category: "bills" }),
+  ]
+  const gap = advise(es, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap")
+  assert.equal(gap?.tone, "tip")
+  assert.equal(gap.title, "You've spent ₱3,000 more than you've earned so far")
+  assert.equal(gap.why, "You've earned ₱15,000 and spent ₱18,000. Last month more came around the 30th, and about ₱15,000 is still to come.")
+  const noPayday = es.filter((e) => e.date !== "2026-09-30")
+  assert.equal(advise(noPayday, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap")?.tone, "warn")
+})
+
+test("money that won't last to the 1st is a warning", () => {
+  const es = [entry("2026-10-01", 10000, "salary", { income: true, category: "income" }), entry("2026-10-02", 5000, "", { category: "savings" })]
+  for (let d = 1; d <= 15; d++) es.push(entry(day("2026-10", d), 300, "puregold", { category: "groceries" }))
+  const short = advise(es, "2026-10", 0, "2026-10-15").find((t) => t.kind === "cash-short")
+  assert.equal(short?.tone, "warn")
+  assert.equal(short.title, "Money may run short before the 1st")
+  assert.equal(short.why, "₱500 is left after spending and savings. Essentials usually need about ₱4,800 more by the 31st.")
+})
+
+test("a safety cushion comes before the goal", () => {
+  const es: Entry[] = []
+  for (const m of ["2026-08", "2026-09"])
+    es.push(entry(`${m}-01`, 30000, "salary", { income: true, category: "income" }), entry(`${m}-02`, 6000, "puregold", { category: "groceries" }), entry(`${m}-03`, 4000, "", { category: "savings" }))
+  es.push(entry("2026-10-01", 30000, "salary", { income: true, category: "income" }), entry("2026-10-02", 6000, "puregold", { category: "groceries" }))
+  const tip = advise(es, "2026-10", 0, "2026-10-10", { goal: { name: "Laptop", amount: 6000000 } }).find((t) => t.kind === "cushion")
+  assert.equal(tip?.title, "Your savings cover 1.3 months of essentials")
+  assert.equal(tip.why, "₱8,000 saved, and bills, groceries, transport and health usually cost ₱6,000 a month. Aim for 3 to 6 months put aside for emergencies.")
+  assert.equal(tip.action, "Keep the first ₱18,000 for emergencies before spending savings on Laptop.")
+})
+
+test("subscriptions among the repeating bills, with their yearly cost", () => {
+  const es: Entry[] = []
+  for (const m of ["2026-08", "2026-09", "2026-10"]) es.push(entry(`${m}-05`, 549, "netflix", { category: "bills" }), entry(`${m}-07`, 149, "spotify", { category: "bills" }))
+  const subs = advise(es, "2026-10", 0, "2026-10-10").find((t) => t.kind === "subscriptions")
+  assert.equal(subs?.title, "Your subscriptions cost ₱698 a month")
+  assert.equal(subs.why, "Netflix ₱549, Spotify ₱149. That's ₱8,376 a year.")
+})
+
+test("spending that has grown three months running", () => {
+  const es = [
+    entry("2026-07-01", 10000, "rent", { category: "bills" }),
+    entry("2026-08-01", 12000, "rent", { category: "bills" }),
+    entry("2026-09-01", 14000, "rent", { category: "bills" }),
+    entry("2026-10-01", 100, "lunch"),
+  ]
+  const creep = advise(es, "2026-10", 0, "2026-10-05").find((t) => t.kind === "creep")
+  assert.equal(creep?.why, "July ₱10,000, August ₱12,000, September ₱14,000.")
+  assert.equal(creep.action, "Hold October to ₱14,000 or less, September's level, so it stops climbing.")
+})
+
+test("a payday splurge against a usual day", () => {
+  const es: Entry[] = [entry("2026-10-01", 20000, "salary", { income: true, category: "income" })]
+  for (let d = "2026-09-01"; d <= "2026-10-14"; d = shiftDay(d, 1)) es.push(entry(d, 200, "movie", { category: "leisure" }))
+  for (const d of ["2026-10-01", "2026-10-02", "2026-10-03"]) es.push(entry(d, 2000, "shopee", { category: "shopping" }))
+  const splurge = advise(es, "2026-10", 0, "2026-10-15").find((t) => t.kind === "payday")
+  assert.equal(splurge?.why, "₱6,600 on extras in the 3 days after you were paid on 1 Oct, against about ₱200 on a usual day.")
+  assert.equal(splurge.action, "On payday, save first, then give the next 3 days a ₱1,000 limit for extras.")
+})
+
+test("a past month's review names the cause and next month's fix", () => {
+  const es = [entry("2026-09-05", 9000, "shopee", { category: "shopping" }), entry("2026-09-10", 3000, "rent", { category: "bills" })]
+  const [over] = advise(es, "2026-09", 1000000, "2026-10-05")
+  assert.equal(over.title, "You went ₱2,000 over budget in September")
+  assert.equal(over.why, "You spent ₱12,000 of your ₱10,000 budget. Extras were 75% of it: Shopping ₱9,000.")
+  assert.equal(over.action, "In October, cut shopping first. It cost ₱9,000.")
+})
+
+test("usualMonth counts only full months, so a half month of tracking doesn't drag the median down", () => {
+  const es = [entry("2026-08-15", 2000, "rent", { category: "bills" }), entry("2026-09-01", 9000, "rent", { category: "bills" }), entry("2026-10-01", 11000, "rent", { category: "bills" })]
+  assert.equal(usualMonth(es, "2026-10"), null, "August started mid-month, so only September is full")
+  assert.deepEqual(usualMonth(es, "2026-11"), { spent: 1000000, income: 0, essentials: 1000000, months: 2 })
 })

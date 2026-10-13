@@ -30,7 +30,20 @@ a small model on the phone, and recent entries count most.
 - Both lists show what goes in each category. **··· → Which category?** adds a few questions that decide
   for you.
 
-Use ‹ › to file something on an earlier day.
+To file something on an earlier day, use ‹ ›, or tap the date for the calendar. Each day there shows what
+you spent, in coral when it was more than a day's share of your budget after bills.
+
+## What to do
+
+Insights reads the month the way a financial advisor would: where you stand first, then a plan for the
+days left. It never tells you to cut money that's already spent.
+
+- **Priorities, in order:** don't run out before the month ends, cover the bills, keep a safety cushion of
+  3 to 6 months of essentials, then goals, then habits.
+- **Your own numbers:** usual essentials per day, usual spending and income, bills that repeat, paydays. A
+  tip that needs history waits until it exists.
+- **It learns which tips you use:** Helpful and Not helpful reorder them. Everything is worked out on the
+  phone, with no AI service.
 
 ## The ··· menu
 

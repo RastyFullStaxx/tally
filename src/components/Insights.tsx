@@ -81,7 +81,8 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
   let status: { tone: keyof typeof TONE; text: string } | null = null
   if (data.budget) {
     const perDay = safe?.perDay ?? s.perDay
-    if (s.spent > data.budget) status = { tone: "warn", text: current ? `Over budget by ${formatPesoWhole(s.spent - data.budget)}` : `Went ${formatPesoWhole(s.spent - data.budget)} over budget` }
+    if (s.spent > data.budget)
+      status = { tone: "warn", text: current ? `Over budget by ${formatPesoWhole(s.spent - data.budget)} · essentials only until the 1st` : `Went ${formatPesoWhole(s.spent - data.budget)} over budget` }
     else if (!current) status = { tone: "good", text: `Finished ${formatPesoWhole(data.budget - s.spent)} under budget` }
     else if (perDay < 0) status = { tone: "warn", text: `Bills still to come will take you over budget` }
     else if (s.spent > s.pace) status = { tone: "tip", text: `${formatPesoWhole(s.spent - s.pace)} more than planned by today · ${formatPesoWhole(perDay)} a day left` }

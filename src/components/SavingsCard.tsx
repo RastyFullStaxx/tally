@@ -33,7 +33,7 @@ export function SavingsCard({ savings, onEditGoal }: { savings: Savings; onEditG
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2 text-xs">
                 <span className="flex min-w-0 items-center gap-1 truncate">
-                  <TargetIcon className="size-3.5 shrink-0 text-primary" />
+                  <TargetIcon className="size-3.5 shrink-0 text-savings" />
                   {goal.name}
                 </span>
                 <span className="shrink-0 text-muted-foreground tabular-nums">
@@ -41,7 +41,7 @@ export function SavingsCard({ savings, onEditGoal }: { savings: Savings; onEditG
                 </span>
               </div>
               <div role="meter" aria-label={`${goal.name} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(goal.progress * 100)} className="h-1 rounded-sm bg-track">
-                <div className="h-full rounded-sm bg-primary" style={{ width: `${goal.progress * 100}%` }} />
+                <div className="h-full rounded-sm bg-savings" style={{ width: `${goal.progress * 100}%` }} />
               </div>
               <p className="text-[11px] text-muted-foreground">
                 {goal.left === 0 ? "Goal reached." : goal.eta ? `At about ${formatPesoWhole(savings.monthlyAvg)} a month, you'll reach it by ${goal.eta}.` : "Put something aside this month to see when you'll reach it."}

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { cn } from "cn"
 
+import { CalendarSheet } from "@/components/CalendarSheet"
 import { CategoryChip } from "@/components/category"
 import { CategoryMenu } from "@/components/CategoryGuide"
 import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
@@ -44,6 +45,8 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   // The line whose category is being picked from its chip. Kept while the sheet slides away.
   const [line, setLine] = useState<Parsed | null>(null)
   const [picking, setPicking] = useState(false)
+  // The calendar, opened from the date. The key starts it on the picked day's month each time.
+  const [calendar, setCalendar] = useState({ open: false, key: 0 })
   const input = useRef<HTMLInputElement>(null)
   // Retrained whenever entries change, so every save and every corrected category teaches the next guess.
   const model = useMemo(() => trainCategoryModel(data.entries), [data.entries])
@@ -57,10 +60,8 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   const day = toDate(date)
   const otherYear = day.getFullYear() !== toDate(today).getFullYear()
   const focus = () => input.current?.focus()
-  const go = (by: number) => {
-    const next = shiftDay(date, by)
-    setPicked(next >= today ? null : next)
-  }
+  const show = (next: string) => setPicked(next >= today ? null : next)
+  const go = (by: number) => show(shiftDay(date, by))
 
   const add = (event: FormEvent) => {
     event.preventDefault()
@@ -93,7 +94,19 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
             {day.toLocaleDateString("en-PH", { weekday: "long" })}
             {otherYear && ` · ${day.getFullYear()}`}
           </p>
-          <h1 className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">{day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</h1>
+          <h1 className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">
+            {/* Tap the date for the calendar; ‹ › still step one day. */}
+            <button
+              type="button"
+              onClick={() => setCalendar((c) => ({ open: true, key: c.key + 1 }))}
+              aria-haspopup="dialog"
+              aria-label={`${day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}. Pick a day`}
+              className="-my-1 flex items-center gap-1 rounded-sm py-1 text-left active:opacity-70"
+            >
+              {day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
+              <DownIcon className="size-4 text-faint" />
+            </button>
+          </h1>
         </div>
         <div className="flex items-center gap-0.5">
           {date !== today && (
@@ -188,7 +201,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
               <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-white/[0.04]">
                 <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
                 <CategoryChip category={e.category} label={labelOf(e)} />
-                <span className={cn("ml-auto shrink-0 font-medium tabular-nums", isIncome(e) && "text-income", isSaving(e) && "text-primary")}>
+                <span className={cn("ml-auto shrink-0 font-medium tabular-nums", isIncome(e) && "text-income", isSaving(e) && "text-savings")}>
                   {isIncome(e) && "+"}
                   {formatPeso(e.amount)}
                 </span>
@@ -234,6 +247,20 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
           )}
         </DrawerContent>
       </Drawer>
+
+      <CalendarSheet
+        open={calendar.open}
+        onOpenChange={(open) => setCalendar((c) => ({ ...c, open }))}
+        openKey={calendar.key}
+        entries={data.entries}
+        budget={data.budget}
+        selected={date}
+        today={today}
+        onPick={(next) => {
+          show(next)
+          setCalendar((c) => ({ ...c, open: false }))
+        }}
+      />
     </div>
   )
 }
