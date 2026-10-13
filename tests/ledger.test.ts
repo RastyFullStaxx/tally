@@ -49,6 +49,13 @@ test("save and withdraw move money in and out of savings", () => {
   assert.deepEqual(parseLine("save 2000 emergency fund"), { amount: 200000, income: false, note: "emergency fund", category: "savings" })
   assert.deepEqual(parseLine("ipon 1000"), { amount: 100000, income: false, note: "", category: "savings" })
   assert.deepEqual(parseLine("withdraw 500"), { amount: 50000, income: true, note: "", category: "savings" })
+  // The word can go anywhere, and joining words drop out of the note.
+  assert.deepEqual(parseLine("1000 savings"), { amount: 100000, income: false, note: "", category: "savings" })
+  assert.deepEqual(parseLine("laptop savings 5000"), { amount: 500000, income: false, note: "laptop", category: "savings" })
+  assert.deepEqual(parseLine("2000 to savings"), { amount: 200000, income: false, note: "", category: "savings" })
+  assert.deepEqual(parseLine("withdraw 500 from savings"), { amount: 50000, income: true, note: "", category: "savings" })
+  assert.deepEqual(parseLine("nag ipon para sa laptop 3000"), { amount: 300000, income: false, note: "laptop", category: "savings" })
+  assert.equal(parseLine("save more 1500")?.category, "other", "SaveMore, the supermarket, is not savings")
 })
 
 test("dates are the phone's local day, not UTC", () => {

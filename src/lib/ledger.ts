@@ -62,6 +62,8 @@ export const KEYWORDS = (
 const INCOME_WORDS = new Set("salary sweldo payroll income bonus allowance commission freelance refund cashback".split(" "))
 const SAVE_WORDS = new Set("save saved savings ipon".split(" "))
 const WITHDRAW_WORDS = new Set("withdraw withdrew".split(" "))
+// Joining words left out of a savings note: "2000 to savings" needs none, "ipon para sa laptop" is "laptop".
+const SAVING_FILLER = new Set("to into in from for my the put move moved transfer transferred add added deposit deposited sa para ng nag mag ko".split(" "))
 
 const AMOUNT = /^\+?(?:₱|php|p)?(\d[\d,]*(?:\.\d{1,2})?)(k?)$/i
 
@@ -90,8 +92,8 @@ export type Guess = (note: string, amount: number) => CategoryId
 
 /**
  * "jollibee 245" → 245 pesos of Food. The largest number on the line is the amount; "+" means income;
- * "save 2000" puts money into savings and "withdraw 500" takes it out. `guess` picks an expense's
- * category: the learned classifier in the app, keywords alone by default.
+ * a save word anywhere ("save 2000", "2000 to savings") puts money into savings and "withdraw 500" takes
+ * it out. `guess` picks an expense's category: the learned classifier in the app, keywords alone by default.
  */
 export function parseLine(text: string, guess: Guess = keywordCategory): Parsed | null {
   const words = text.trim().split(/\s+/).filter(Boolean)
@@ -106,9 +108,16 @@ export function parseLine(text: string, guess: Guess = keywordCategory): Parsed 
     .filter((_, i) => i !== at)
     .join(" ")
     .replace(/^\+\s*/, "")
-  const first = wordsOf(note)[0] ?? ""
-  if (SAVE_WORDS.has(first) || WITHDRAW_WORDS.has(first)) {
-    return { amount, income: WITHDRAW_WORDS.has(first), note: note.split(/\s+/).slice(1).join(" "), category: "savings" }
+  const lower = wordsOf(note)
+  const first = lower[0] ?? ""
+  const moves = (w: string) => SAVE_WORDS.has(w) || WITHDRAW_WORDS.has(w)
+  // "save more" is SaveMore, the supermarket.
+  if (lower.some(moves) && !/\bsave\s+more\b/i.test(note)) {
+    const label = note.split(/\s+/).filter((w) => {
+      const word = wordsOf(w)[0] ?? ""
+      return !moves(word) && !SAVING_FILLER.has(word)
+    })
+    return { amount, income: lower.some((w) => WITHDRAW_WORDS.has(w)), note: label.join(" "), category: "savings" }
   }
   const income = words[0].startsWith("+") || words[at].startsWith("+") || INCOME_WORDS.has(first)
   return { amount, income, note, category: income ? "income" : guess(note, amount) }

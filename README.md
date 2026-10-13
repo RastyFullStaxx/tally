@@ -14,10 +14,12 @@ Everything stays on the phone. The decisions behind it are in
 | `grab to office 186` | ₱186, Transport |
 | `+25000 salary` or `salary 25k` | ₱25,000 income |
 | `2 coffees 240` | ₱240 (the largest number on the line is the amount) |
-| `save 2000 emergency fund` or `ipon 2000` | ₱2,000 put into savings |
+| `1000 savings`, `save 1000 laptop` or `ipon 1000` | ₱1,000 put into savings |
 | `withdraw 500` | ₱500 taken out of savings |
 
-Savings are neither spending nor income, so they don't count against the budget.
+Save, savings, ipon or withdraw can go anywhere in the line, and the other words become the note. Savings
+are neither spending nor income, so they don't count against the budget. They go into one savings total,
+and the savings goal (··· → Savings goal) tracks that total.
 
 Categories are guessed, and the guesses learn. Every entry you save and every category you fix trains
 a small model on the phone, and recent entries count most.

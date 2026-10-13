@@ -108,7 +108,7 @@ const Ex = ({ children }: { children: ReactNode }) => <span className="rounded-s
 const HOW_TO = [
   { icon: ReturnIcon, title: "Type it, press return. Done.", body: <><Ex>jollibee 245</Ex> becomes ₱245 in Food. Nothing to fill in.</> },
   { icon: TrendUpIcon, title: "Money came in?", body: <>Add a plus: <Ex>+25000 salary</Ex></> },
-  { icon: PiggyIcon, title: "Saving?", body: <>Start with save or ipon: <Ex>save 1000</Ex> puts it aside, <Ex>withdraw 500</Ex> takes some out. Neither counts as spending.</> },
+  { icon: PiggyIcon, title: "Saving?", body: <>Just say so: <Ex>1000 savings</Ex> puts it aside, <Ex>withdraw 500</Ex> takes some out. Neither counts as spending.</> },
   { icon: PencilIcon, title: "Wrong category?", body: <>Tap the chip at the end of the line, or tap the entry later. Tally learns, so next time it guesses right.</> },
   { icon: CalendarIcon, title: "Forgot one?", body: <>Tap ‹ at the top to go back a day.</> },
   { icon: ChartIcon, title: "Where did it go?", body: <>Insights shows what's safe to spend today, the bills coming up, and what to do next.</> },
