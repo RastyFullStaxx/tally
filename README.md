@@ -20,9 +20,15 @@ Everything stays on the phone. The decisions behind it are in
 Savings are neither spending nor income, so they don't count against the budget.
 
 Categories are guessed, and the guesses learn. Every entry you save and every category you fix trains
-a small model on the phone, and recent entries count most. Tap an entry to fix it: the edit sheet
-lists every category with what goes in it. **··· → Which category?** has the same guide plus a few
-questions that decide for you. Use ‹ › to file something on an earlier day.
+a small model on the phone, and recent entries count most.
+
+- The guess shows on the chip at the end of the line, before you press return. If it's wrong, tap the
+  chip and pick the right category, and the line is saved with it.
+- To fix an entry you've already saved, tap it.
+- Both lists show what goes in each category. **··· → Which category?** adds a few questions that decide
+  for you.
+
+Use ‹ › to file something on an earlier day.
 
 ## The ··· menu
 

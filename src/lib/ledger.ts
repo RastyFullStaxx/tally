@@ -43,8 +43,8 @@ export type Data = { entries: Entry[]; budget: number; goal?: Goal; votes?: TipV
 export type Parsed = Pick<Entry, "amount" | "income" | "note" | "category">
 
 export const isSaving = (e: Pick<Entry, "category">) => e.category === "savings"
-export const isIncome = (e: Entry) => e.income && !isSaving(e)
-export const isExpense = (e: Entry) => !e.income && !isSaving(e)
+export const isIncome = (e: Pick<Entry, "income" | "category">) => e.income && !isSaving(e)
+export const isExpense = (e: Pick<Entry, "income" | "category">) => !e.income && !isSaving(e)
 
 // Checked in this order, so "grab food" is Food before "grab" can make it Transport.
 export const KEYWORDS = (

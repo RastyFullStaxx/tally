@@ -2,11 +2,29 @@ import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react
 import { cn } from "cn"
 
 import { CategoryChip } from "@/components/category"
-import { LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
+import { CategoryMenu } from "@/components/CategoryGuide"
+import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { predictCategory, trainCategoryModel } from "@/lib/classifier"
 import { safeToSpend } from "@/lib/insights"
-import { CATEGORIES, formatPeso, formatPesoWhole, isExpense, isIncome, isSaving, monthOf, monthSummary, parseLine, shiftDay, toDate, type Data, type Entry, type Parsed } from "@/lib/ledger"
+import {
+  CATEGORIES,
+  formatPeso,
+  formatPesoWhole,
+  isExpense,
+  isIncome,
+  isSaving,
+  monthOf,
+  monthSummary,
+  parseLine,
+  shiftDay,
+  toDate,
+  type CategoryId,
+  type Data,
+  type Entry,
+  type Parsed,
+} from "@/lib/ledger"
 
 type Props = { data: Data; today: string; menu: ReactNode; onAdd: (entry: Entry) => void; onEdit: (entry: Entry) => void; onEditBudget: () => void }
 
@@ -16,11 +34,16 @@ const stamp = (parsed: Parsed, date: string): Entry => ({ id: crypto.randomUUID(
 /** A line's label: savings say which way the money moved. */
 const labelOf = (e: Pick<Entry, "category" | "income">) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
 
+const CHIP = "flex shrink-0 items-center gap-1 rounded-sm border border-dashed border-primary/40 px-1.5 py-0.5 text-[11px] leading-none text-primary"
+
 /** The launch screen: one ruled page per day, and the first line is where you type. */
 export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props) {
   const [picked, setPicked] = useState<string | null>(null)
   const [text, setText] = useState("")
   const [needsAmount, setNeedsAmount] = useState(false)
+  // The line whose category is being picked from its chip. Kept while the sheet slides away.
+  const [line, setLine] = useState<Parsed | null>(null)
+  const [picking, setPicking] = useState(false)
   const input = useRef<HTMLInputElement>(null)
   // Retrained whenever entries change, so every save and every corrected category teaches the next guess.
   const model = useMemo(() => trainCategoryModel(data.entries), [data.entries])
@@ -51,6 +74,15 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
     setNeedsAmount(false)
     focus()
     onAdd(stamp(preview, date))
+  }
+
+  // Picking from the chip saves the line with that category, which the model then learns from.
+  const pick = (category: CategoryId) => {
+    if (!line) return
+    setPicking(false)
+    setText("")
+    setNeedsAmount(false)
+    onAdd(stamp({ ...line, category }, date))
   }
 
   return (
@@ -118,13 +150,30 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
             enterKeyHint="enter"
             className="h-full min-w-0 flex-1 bg-transparent text-base caret-primary outline-none placeholder:text-faint"
           />
-          {preview && (
-            <span className="flex shrink-0 items-center gap-1 rounded-sm border border-dashed border-primary/40 px-1.5 py-0.5 text-[11px] leading-none text-primary">
-              {labelOf(preview)} · {preview.income && !isSaving(preview) && "+"}
-              {formatPeso(preview.amount)}
-              <ReturnIcon className="size-3" />
-            </span>
-          )}
+          {preview &&
+            (isExpense(preview) ? (
+              // A guessed category: tap it to pick the right one. The tap area reaches past the small chip.
+              <button
+                type="button"
+                onClick={() => {
+                  setLine(preview)
+                  setPicking(true)
+                }}
+                aria-haspopup="dialog"
+                aria-label={`${CATEGORIES[preview.category]}, ${formatPeso(preview.amount)}. Change the category`}
+                className={cn(CHIP, "relative after:absolute after:-inset-2 active:bg-primary/10")}
+              >
+                {CATEGORIES[preview.category]}
+                <DownIcon className="-ml-0.5 size-3" />· {formatPeso(preview.amount)}
+                <ReturnIcon className="size-3" />
+              </button>
+            ) : (
+              <span className={CHIP}>
+                {labelOf(preview)} · {isIncome(preview) && "+"}
+                {formatPeso(preview.amount)}
+                <ReturnIcon className="size-3" />
+              </span>
+            ))}
         </form>
 
         {needsAmount && (
@@ -163,6 +212,28 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
           Spent {date === today ? "today" : "that day"} <span className="font-medium text-foreground tabular-nums">{formatPeso(spent)}</span>
         </span>
       </p>
+
+      <Drawer open={picking} onOpenChange={setPicking}>
+        {/* Back to the entry line afterwards, ready for the next one. */}
+        <DrawerContent
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            focus()
+          }}
+        >
+          {line && (
+            <div className="flex flex-col gap-2.5 overflow-y-auto px-1 pb-[env(safe-area-inset-bottom)]">
+              <DrawerHeader className="p-2 pb-0">
+                <DrawerTitle>{line.note ? `What is “${line.note}”?` : "Which category?"}</DrawerTitle>
+                <DrawerDescription>
+                  Tally guessed {CATEGORIES[line.category]}. Tap the right one to save {formatPeso(line.amount)}.
+                </DrawerDescription>
+              </DrawerHeader>
+              <CategoryMenu value={line.category} onPick={pick} />
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }
