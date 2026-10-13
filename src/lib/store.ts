@@ -3,6 +3,24 @@
 import { localDate, mergeBackup, toBackup, type Data } from "./ledger"
 
 const KEY = "tally:v1"
+const HELP_SEEN = "tally:help-seen" // a flag for this phone, kept out of backups
+
+/** Whether How to use has been shown on this phone. Unreadable storage counts as seen, so it never nags. */
+export function helpSeen() {
+  try {
+    return localStorage.getItem(HELP_SEEN) !== null
+  } catch {
+    return true
+  }
+}
+
+export function markHelpSeen() {
+  try {
+    localStorage.setItem(HELP_SEEN, "1")
+  } catch {
+    // Storage is blocked: it shows again on the next launch, which is harmless.
+  }
+}
 
 /** Reads the saved data. Unreadable data is copied aside under its own key first, never overwritten. */
 export function load(): Data {

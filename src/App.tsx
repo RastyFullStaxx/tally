@@ -9,7 +9,7 @@ import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
 import { addVote, tipFeatures, type Tip } from "@/lib/insights"
 import { localDate, type Data, type Entry } from "@/lib/ledger"
-import { exportBackup, importBackup, load, save } from "@/lib/store"
+import { exportBackup, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
 
 const TABS = [
   { id: "today", label: "Today", icon: NotebookIcon },
@@ -39,8 +39,9 @@ export default function App() {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("today")
   const [editing, setEditing] = useState<{ entry: Entry; key: number } | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  // A phone's first launch (nothing logged, never shown) opens How to use by itself. After that it's in ···.
+  const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(() => (data.entries.length === 0 && !helpSeen() ? { kind: "help", key: 0 } : null))
+  const [sheetOpen, setSheetOpen] = useState(() => sheet !== null)
   const [notice, setNotice] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -135,7 +136,10 @@ export default function App() {
       <Sheets
         sheet={sheet}
         open={sheetOpen}
-        onOpenChange={setSheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open)
+          if (!open && sheet?.kind === "help") markHelpSeen()
+        }}
         budget={data.budget}
         goal={data.goal}
         onBudget={(budget) => commit({ ...data, budget })}

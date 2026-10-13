@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useRegisterSW } from "virtual:pwa-register/react"
 
-import { DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TargetIcon, UploadIcon, WalletIcon } from "@/components/icons"
+import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TargetIcon, UploadIcon, WalletIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-export type Sheet = "budget" | "goal" | "install" | "guide"
+export type Sheet = "help" | "budget" | "goal" | "install" | "guide"
 
 const HOUR = 60 * 60 * 1000
 
@@ -123,6 +123,11 @@ export function AppMenu({ updates, install, onOpen, onExport, onImport, say }: P
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
+          {/* First, where a newcomer looks first. It also opens by itself on a phone's first launch (App). */}
+          <DropdownMenuItem onSelect={() => onOpen("help")}>
+            <BulbIcon />
+            How to use Tally
+          </DropdownMenuItem>
           {install.available && (
             <DropdownMenuItem
               onSelect={async () => {

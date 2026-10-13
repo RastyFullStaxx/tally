@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react"
 
 import type { Sheet } from "@/components/AppMenu"
 import { CategoryGuideList } from "@/components/CategoryGuide"
-import { AddSquareIcon, ShareIcon } from "@/components/icons"
+import { AddSquareIcon, CalendarIcon, ChartIcon, MoreIcon, PencilIcon, PiggyIcon, ReturnIcon, ShareIcon, TrendUpIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,11 @@ export function Sheets({ sheet, open, onOpenChange, budget, goal, onBudget, onGo
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
+        {sheet?.kind === "help" && (
+          <Info title="How to use Tally" description="Type it like a note. Tally does the rest." onDone={done}>
+            <HowTo />
+          </Info>
+        )}
         {sheet?.kind === "budget" && (
           <BudgetForm
             key={sheet.key}
@@ -93,6 +98,40 @@ function Info({ title, description, onDone, children }: { title: string; descrip
         </Button>
       </DrawerFooter>
     </div>
+  )
+}
+
+/** Something to type, shown the way it looks on the entry line. */
+const Ex = ({ children }: { children: ReactNode }) => <span className="rounded-sm bg-white/[0.07] px-1 py-px whitespace-nowrap text-foreground">{children}</span>
+
+// The whole app on one screen: each row is a question a newcomer has, answered with what to type or tap.
+const HOW_TO = [
+  { icon: ReturnIcon, title: "Type it, press return. Done.", body: <><Ex>jollibee 245</Ex> becomes ₱245 in Food. Nothing to fill in.</> },
+  { icon: TrendUpIcon, title: "Money came in?", body: <>Add a plus: <Ex>+25000 salary</Ex></> },
+  { icon: PiggyIcon, title: "Saving?", body: <>Start with save or ipon: <Ex>save 1000</Ex> puts it aside, <Ex>withdraw 500</Ex> takes some out. Neither counts as spending.</> },
+  { icon: PencilIcon, title: "Wrong category?", body: <>Tap the chip at the end of the line, or tap the entry later. Tally learns, so next time it guesses right.</> },
+  { icon: CalendarIcon, title: "Forgot one?", body: <>Tap ‹ at the top to go back a day.</> },
+  { icon: ChartIcon, title: "Where did it go?", body: <>Insights shows what's safe to spend today, the bills coming up, and what to do next.</> },
+  { icon: MoreIcon, title: "Set it once.", body: <>Your monthly budget and savings goal are in ··· at the top.</> },
+]
+
+function HowTo() {
+  return (
+    <>
+      <ul className="space-y-2.5 text-sm">
+        {HOW_TO.map((row) => (
+          <li key={row.title} className="flex gap-2.5">
+            <row.icon className="mt-0.5 size-4 shrink-0 text-primary" />
+            <p className="leading-snug">
+              <span className="font-medium">{row.title}</span> <span className="text-muted-foreground">{row.body}</span>
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="rounded-md bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
+        No account, no internet needed. Everything stays on this phone, so back it up now and then: ··· → Export backup.
+      </p>
+    </>
   )
 }
 
