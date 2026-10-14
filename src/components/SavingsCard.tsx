@@ -1,3 +1,5 @@
+import { Mascot } from "@/components/Mascot"
+
 import { PencilIcon, TargetIcon } from "@/components/icons"
 import { SectionTitle } from "@/components/section"
 import { Button } from "@/components/ui/button"
@@ -12,7 +14,7 @@ export function SavingsCard({ savings, onEditGoal }: { savings: Savings; onEditG
   return (
     <Card className="gap-1.5 px-3">
       <div className="flex items-center justify-between">
-        <SectionTitle>Savings</SectionTitle>
+<div className="flex items-center gap-2"><Mascot pose={goal?.left === 0 ? "celebration" : "saving"} size={64} /><SectionTitle>Savings</SectionTitle></div>
         <Button variant="ghost" size="icon-sm" aria-label={goal ? "Edit savings goal" : "Set a savings goal"} onClick={onEditGoal} className="-my-1 size-7 text-muted-foreground">
           <PencilIcon className="size-3.5" />
         </Button>

@@ -1,3 +1,5 @@
+import { Mascot } from "@/components/Mascot"
+
 import { useState, type FormEvent, type ReactNode } from "react"
 
 import type { Sheet } from "@/components/AppMenu"
@@ -118,6 +120,10 @@ const HOW_TO = [
 function HowTo() {
   return (
     <>
+      <div className="flex items-center gap-3">
+        <Mascot pose="welcome" size={80} />
+        <p className="text-sm text-muted-foreground"><span className="block font-medium text-foreground">Meet your little budget companion.</span>A note at a time, you've got this.</p>
+      </div>
       <ul className="space-y-2.5 text-sm">
         {HOW_TO.map((row) => (
           <li key={row.title} className="flex gap-2.5">

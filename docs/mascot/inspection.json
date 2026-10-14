@@ -1,0 +1,128 @@
+[
+  {
+    "pose": "welcome",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      202,
+      59,
+      1081,
+      1201
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 881412
+  },
+  {
+    "pose": "ready",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      154,
+      61,
+      1159,
+      1196
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 1024442
+  },
+  {
+    "pose": "thinking",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      215,
+      64,
+      1085,
+      1199
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 989790
+  },
+  {
+    "pose": "saving",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      211,
+      63,
+      1117,
+      1188
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 1033864
+  },
+  {
+    "pose": "celebration",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      154,
+      65,
+      1111,
+      1197
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 972287
+  },
+  {
+    "pose": "reassurance",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      192,
+      57,
+      1092,
+      1202
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 947863
+  }
+]

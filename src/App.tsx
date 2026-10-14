@@ -4,6 +4,7 @@ import { cn } from "cn"
 import { AppMenu, useInstall, useUpdates, type Sheet } from "@/components/AppMenu"
 import { EntryDrawer } from "@/components/EntryDrawer"
 import { AlertIcon, ChartIcon, NotebookIcon } from "@/components/icons"
+import { TallyBrand } from "@/components/Mascot"
 import { Insights } from "@/components/Insights"
 import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
@@ -100,6 +101,8 @@ export default function App() {
           {notice}
         </p>
       )}
+
+      <div className="px-3 pt-2"><TallyBrand /></div>
 
       {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts) only exists while open. */}
       <main hidden={tab !== "today"} className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">

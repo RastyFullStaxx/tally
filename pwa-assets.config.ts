@@ -1,6 +1,6 @@
 import { defineConfig, minimal2023Preset } from "@vite-pwa/assets-generator/config"
 
-// The logo is a full-bleed navy tile, so the iOS and maskable icons need no padding and a navy (not white) fill.
+// The cat head sits inside the maskable safe zone of a full-bleed navy tile; keep that padding.
 const navy = { background: "#0B1426", fit: "contain" } as const
 
 export default defineConfig({

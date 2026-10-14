@@ -116,3 +116,12 @@ Your entries aren't touched by an update.
 - **Never change the URL.** Your data belongs to that address.
 - **Back up now and then.** Tap ··· → Export backup → Save to Files. To restore, use ··· → Import backup, which merges and never duplicates. Backups include your savings goal and tip feedback.
 - **Deleting the Home Screen icon deletes its data.**
+
+## Cat mascot and app icon
+
+The cat is Tally's header logo and installed-app icon, and appears in help, empty days, insights,
+savings goals and budget warnings. Original PNGs and optimized runtime WebP assets are in
+public/mascot/tally-cat. See [the character guide](docs/mascot/character-guide.md).
+
+After changing a source mascot image, run npm run mascot:assets, then npm run build to regenerate
+the app icons. Runtime images work offline; the high-resolution originals are not precached.

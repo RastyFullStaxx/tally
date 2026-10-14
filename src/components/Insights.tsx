@@ -1,3 +1,5 @@
+import { Mascot } from "@/components/Mascot"
+
 import { useState, type ReactNode } from "react"
 import { cn } from "cn"
 import { Area, Bar, BarChart, ComposedChart, Line, ReferenceDot, XAxis, YAxis } from "recharts"
@@ -163,7 +165,7 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
               </div>
               {status && (
                 <p className={cn("flex items-center gap-1.5 text-xs", TONE[status.tone].className)}>
-                  {status.tone === "good" ? <CheckCircleIcon className="size-3.5 shrink-0" /> : <AlertIcon className="size-3.5 shrink-0" />}
+                  {status.tone === "warn" ? <Mascot pose="reassurance" size={48} /> : status.tone === "good" ? <CheckCircleIcon className="size-3.5 shrink-0" /> : <AlertIcon className="size-3.5 shrink-0" />}
                   {status.text}
                 </p>
               )}
@@ -176,7 +178,7 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
         </Card>
 
         <Card className="gap-1 px-3">
-          <SectionTitle>What to do</SectionTitle>
+          <div className="flex items-center justify-between"><SectionTitle>What to do</SectionTitle>{tips.length > 0 && <Mascot pose="thinking" size={48} />}</div>
           <Tips tips={tips} votes={data.votes} onVote={onVote} />
         </Card>
 

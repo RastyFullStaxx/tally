@@ -1,3 +1,5 @@
+import { Mascot } from "@/components/Mascot"
+
 import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { cn } from "cn"
 
@@ -219,10 +221,18 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
           ))}
         </ul>
 
-        {Array.from({ length: Math.max(4, 12 - lines.length) }, (_, i) => (
-          <div key={i} aria-hidden onClick={focus} className="flex h-9 items-center border-b border-rule pl-8 text-sm text-faint">
-            {i === 0 && data.entries.length === 0 && "Type a line like jollibee 245, then return."}
+        {lines.length === 0 && (
+          <div className="flex items-center gap-3 border-b border-rule py-2 pr-4 pl-8">
+            <Mascot pose="ready" />
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              <span className="mb-1 block text-sm font-medium text-foreground">{date === today ? "A fresh page for today." : "No entries for this day."}</span>
+              Type a line like coffee 120, then press return.
+            </p>
           </div>
+        )}
+
+        {Array.from({ length: Math.max(4, (lines.length === 0 ? 8 : 12) - lines.length) }, (_, i) => (
+          <div key={i} aria-hidden onClick={focus} className="flex h-9 items-center border-b border-rule pl-8 text-sm text-faint" />
         ))}
       </div>
 
