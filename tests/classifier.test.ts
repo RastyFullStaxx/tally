@@ -2,7 +2,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { predictCategory, trainCategoryModel } from "../src/lib/classifier.ts"
-import type { Entry } from "../src/lib/ledger.ts"
+import { parseLine, type Entry } from "../src/lib/ledger.ts"
 
 const DAY = 86_400_000
 let seq = 0
@@ -50,7 +50,11 @@ test("recent habits outweigh old ones", () => {
   assert.equal(p.source, "learned")
 })
 
-test("income and savings never teach it expense categories", () => {
-  const es = [entry("gcash", "income", 500, 1, { income: true }), entry("gcash", "savings", 500, 0)]
-  assert.equal(guess(es, "gcash").source, "default")
+test("a note logged as income is income next time, even without the plus; savings teach nothing", () => {
+  const paid = [entry("noemi payment", "income", 200, 1, { income: true })]
+  assert.deepEqual([guess(paid, "noemi payment").category, guess(paid, "noemi payment").source], ["income", "repeat"])
+  const model = trainCategoryModel(paid)
+  assert.deepEqual(parseLine("noemi payment 300", (note, amount) => predictCategory(model, note, amount).category), { amount: 30000, income: true, note: "noemi payment", category: "income" })
+  assert.equal(guess(paid, "noemi").source, "default", "only the exact note, and income never trains the expense model")
+  assert.equal(guess([entry("gcash", "savings", 500, 0)], "gcash").source, "default")
 })

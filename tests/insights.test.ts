@@ -8,6 +8,7 @@ import {
   advise,
   categoryDetail,
   dayBrief,
+  incomeProfile,
   forecastMonth,
   recurringBills,
   safeToSpend,
@@ -208,9 +209,10 @@ test("savingsSummary totals deposits and withdrawals and dates the goal", () => 
   const s = savingsSummary(es, { name: "Emergency fund", amount: 5000000 }, "2026-10-11")
   assert.equal(s.total, 800000)
   assert.equal(s.thisMonth, 200000)
-  assert.equal(Math.round(s.monthlyAvg), 266667)
+  assert.equal(Math.round(s.monthlyAvg), 413793, "₱8,000 net over the 58 days since 15 Aug, as a 30-day month")
+  assert.equal(s.deposits, 3)
   assert.equal(s.goal?.progress, 0.16)
-  assert.equal(s.goal?.eta, "February 2028")
+  assert.equal(s.goal?.eta, "September 2027")
 })
 
 // ---------------------------------------------------------------- advice for every situation
@@ -269,7 +271,8 @@ test("heading over with a daily limit below what essentials cost: say so, and gi
   assert.equal(tip.action, "Essentials alone usually cost about ₱400 a day, so ₱10,000 can't be met now. Skip extras and you'll land near ₱15,400, ₱5,400 over.")
 })
 
-test("spending above income is a timing note when payday is still ahead, a warning when it isn't", () => {
+test("income comes whenever: one month behind isn't an alarm when the last 90 days are fine", () => {
+  // Paid on the 15th and 30th; October's rent landed the day after its first payment.
   const es = [
     entry("2026-09-15", 15000, "salary", { income: true, category: "income" }),
     entry("2026-09-30", 15000, "salary", { income: true, category: "income" }),
@@ -277,12 +280,99 @@ test("spending above income is a timing note when payday is still ahead, a warni
     entry("2026-10-15", 15000, "salary", { income: true, category: "income" }),
     entry("2026-10-16", 18000, "rent", { category: "bills" }),
   ]
-  const gap = advise(es, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap")
-  assert.equal(gap?.tone, "tip")
-  assert.equal(gap.title, "You've spent ₱3,000 more than you've earned so far")
-  assert.equal(gap.why, "You've earned ₱15,000 and spent ₱18,000. Last month more came around the 30th, and about ₱15,000 is still to come.")
-  const noPayday = es.filter((e) => e.date !== "2026-09-30")
-  assert.equal(advise(noPayday, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap")?.tone, "warn")
+  assert.equal(advise(es, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap"), undefined)
+  // Spending that really runs ahead of what comes in, over the whole window, is a warning.
+  const behind = [entry("2026-09-01", 10000, "client", { income: true, category: "income" }), entry("2026-09-05", 9000, "rent", { category: "bills" }), entry("2026-10-02", 9000, "rent", { category: "bills" })]
+  const gap = advise(behind, "2026-10", 0, "2026-10-10").find((t) => t.kind === "income-gap")
+  assert.equal(gap?.tone, "warn")
+  assert.equal(gap.title, "You've spent ₱8,000 more than came in")
+  assert.equal(gap.why, "₱10,000 came in and ₱18,000 went out over the last 40 days.")
+  assert.equal(gap.action, "Bring spending under what comes in: about ₱6,000 a month less.")
+})
+
+test("money from earlier months still counts: a small payment this month isn't a shortfall", () => {
+  const es = [entry("2026-09-01", 40000, "client", { income: true, category: "income" }), entry("2026-10-05", 500, "noemi", { income: true, category: "income" })]
+  for (let d = "2026-09-01"; d <= "2026-10-15"; d = shiftDay(d, 1)) es.push(entry(d, 300, "puregold", { category: "groceries" }))
+  const tips = advise(es, "2026-10", 0, "2026-10-15")
+  assert.ok(!tips.some((t) => t.kind === "income-gap" || t.kind === "cash-short"), JSON.stringify(tips.map((t) => t.title)))
+})
+
+// July to September with uneven income: ₱20,000, then ₱8,000, then ₱30,000, mostly from one client.
+const irregular = () => [
+  entry("2026-07-01", 5000, "rent", { category: "bills" }),
+  entry("2026-07-05", 12000, "client", { income: true, category: "income" }),
+  entry("2026-07-20", 8000, "client", { income: true, category: "income" }),
+  entry("2026-08-01", 5000, "rent", { category: "bills" }),
+  entry("2026-08-18", 8000, "client", { income: true, category: "income" }),
+  entry("2026-09-01", 5000, "rent", { category: "bills" }),
+  entry("2026-09-03", 18000, "client", { income: true, category: "income" }),
+  entry("2026-09-25", 12000, "bonus", { income: true, category: "income" }),
+  entry("2026-10-01", 5000, "rent", { category: "bills" }),
+]
+
+test("incomeProfile learns an irregular income from what was logged, with nothing asked", () => {
+  const inc = incomeProfile(irregular(), "2026-10-10")
+  assert.ok(inc)
+  const { months, typical, lean, high, steady, expected, gapDays, sinceDays, usualPayment } = inc
+  assert.deepEqual(
+    { months, typical, lean, high, steady, expected, gapDays, sinceDays, usualPayment },
+    { months: 3, typical: 2000000, lean: 800000, high: 3000000, steady: false, expected: 1800000, gapDays: 19, sinceDays: 15, usualPayment: 1200000 }
+  )
+  assert.deepEqual(
+    inc.streams.map((s) => [s.source, s.regular]),
+    [
+      ["client", true],
+      ["bonus", false],
+    ],
+    "the client comes back; the bonus was a one-off, never expected"
+  )
+  const plan = advise(irregular(), "2026-10", 0, "2026-10-10").find((t) => t.kind === "income-plan")
+  assert.equal(plan?.title, "Plan on ₱8,000 a month")
+  assert.equal(plan.why, "Your income ranged from ₱8,000 to ₱30,000 over the last 3 months, ₱20,000 in a usual one.")
+})
+
+test("a dry spell longer than usual, and a month that brought nothing", () => {
+  const tips = advise(irregular(), "2026-11", 0, "2026-11-05")
+  const dry = tips.find((t) => t.kind === "dry-spell")
+  assert.equal(dry?.title, "No income logged for 41 days")
+  assert.equal(dry.why, "It usually comes every 19 days or so.")
+  assert.match(dry.action, /^Essentials only until money comes in\. What's left, ₱38,000, lasts about 342 days/)
+  assert.equal(tips.find((t) => t.kind === "income-plan")?.title, "Some months bring no income")
+})
+
+// The same income, spent on ₱600 lunches every day: little is left over between payments.
+const spender = (lunch: number) => {
+  const es = irregular()
+  for (let d = "2026-07-01"; d <= "2026-10-10"; d = shiftDay(d, 1)) es.push(entry(d, lunch, "lunch"))
+  return es
+}
+
+test("a bigger payment than usual gets a job before it's spent", () => {
+  const es = [...spender(600), entry("2026-10-08", 30000, "client", { income: true, category: "income" })]
+  const tips = advise(es, "2026-10", 0, "2026-10-10")
+  const windfall = tips.find((t) => t.kind === "windfall")
+  assert.ok(!tips.some((t) => t.kind === "savings-start"), "one amount to save at a time")
+  assert.equal(windfall?.why, "₱30,000 from client on 8 Oct, against a usual ₱12,000.")
+  assert.equal(windfall.action, "Give it a job before it gets spent: half into savings (type save 15000), the rest for lean months.")
+  // Someone who banks nearly everything is holding more than a month of spending: one instruction covers it.
+  const saver = advise([...irregular(), entry("2026-10-08", 30000, "client", { income: true, category: "income" })], "2026-10", 0, "2026-10-10")
+  assert.ok(saver.some((t) => t.kind === "savings-buffer") && !saver.some((t) => t.kind === "windfall"))
+})
+
+test("a payment with nothing saved from it yet, for someone who saves", () => {
+  const es = [...spender(400), entry("2026-08-20", 2000, "", { category: "savings" }), entry("2026-10-08", 10000, "client", { income: true, category: "income" })]
+  const tip = advise(es, "2026-10", 0, "2026-10-10").find((t) => t.kind === "save-from-income")
+  assert.equal(tip?.title, "Nothing saved from 8 Oct's ₱10,000 yet")
+  assert.equal(tip.action, "Put 20% aside now: type save 2000.")
+})
+
+test("more in hand than a month of spending: keep a month, save the rest", () => {
+  const es = [entry("2026-09-01", 50000, "client", { income: true, category: "income" })]
+  for (let d = "2026-09-01"; d <= "2026-10-10"; d = shiftDay(d, 1)) es.push(entry(d, 300, "puregold", { category: "groceries" }))
+  const tip = advise(es, "2026-10", 0, "2026-10-10").find((t) => t.kind === "savings-buffer")
+  assert.equal(tip?.title, "You're holding ₱29,000 more than a month of spending")
+  assert.equal(tip.why, "₱38,000 is left from what's come in, and a month usually costs you about ₱9,000.")
+  assert.equal(tip.action, "Keep a month at hand for the gaps between payments, and move the rest to savings: type save 29000.")
 })
 
 test("money that won't last to the 1st is a warning", () => {
@@ -360,7 +450,7 @@ test("the day line judges a past day against what it could safely spend", () => 
     tone: "good",
     label: "No spending on 1 Oct",
     amount: null,
-    notes: ["Its ₱323 stayed in the budget for the days after."],
+    notes: ["Its ₱323 stayed in the budget for the days after.", "+₱23,700 came in from salary. ₱10,000 went to savings soon after. Good."],
   })
 })
 

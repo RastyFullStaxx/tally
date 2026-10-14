@@ -2,7 +2,7 @@
 // trained on your own saved entries. Each save or edit leaves the final category on the entry and the model
 // is rebuilt from them, so its guesses follow your habits the longer the app is used.
 // Pure: no DOM, no storage, no network.
-import { KEYWORDS, isExpense, keywordCategory, wordsOf, type CategoryId, type Entry } from "./ledger.ts"
+import { KEYWORDS, isExpense, isSaving, keywordCategory, wordsOf, type CategoryId, type Entry } from "./ledger.ts"
 
 const DAY = 86_400_000
 const HALF_LIFE_DAYS = 90 // a correction made last week outweighs a habit from last year
@@ -43,14 +43,19 @@ export function trainCategoryModel(entries: Entry[]): CategoryModel {
   }
   for (const { category, words } of KEYWORDS) for (const w of words) learn(category, [`w:${w}`, `first:${w}`], SEED_WEIGHT)
 
-  const expenses = entries.filter(isExpense)
   const touched = (e: Entry) => e.updatedAt ?? e.createdAt
+  // Exact notes remember what they were last time, income included: log "+200 noemi payment" once, and the
+  // next "noemi payment 300" is income without the plus. Savings are left out; their words already say so.
+  for (const e of entries) {
+    const key = normal(e.note)
+    const seen = model.exact.get(key)
+    if (key && !isSaving(e) && (!seen || seen.at <= touched(e))) model.exact.set(key, { category: e.category, at: touched(e) })
+  }
+
+  const expenses = entries.filter(isExpense)
   const newest = expenses.reduce((m, e) => Math.max(m, touched(e)), 0)
   for (const e of expenses) {
     const at = touched(e)
-    const key = normal(e.note)
-    const seen = model.exact.get(key)
-    if (key && (!seen || seen.at <= at)) model.exact.set(key, { category: e.category, at })
     const weight = 0.5 ** ((newest - at) / (HALF_LIFE_DAYS * DAY))
     model.docs.set(e.category, (model.docs.get(e.category) ?? 0) + weight)
     learn(e.category, features(e.note, e.amount), weight)

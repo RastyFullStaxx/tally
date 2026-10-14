@@ -21,7 +21,8 @@ Save, savings, ipon or withdraw can go anywhere in the line, and the other words
 are neither spending nor income, so they don't count against the budget. They go into one savings total,
 and the savings goal (··· → Savings goal) tracks that total.
 
-Categories are guessed, and the guesses learn. Every entry you save and every category you fix trains
+Categories are guessed, and the guesses learn. A note you once logged as income (`+200 noemi payment`) is
+income next time, even without the plus. Every entry you save and every category you fix trains
 a small model on the phone, and recent entries count most.
 
 - The guess shows on the chip at the end of the line, before you press return. If it's wrong, tap the
@@ -40,8 +41,17 @@ days left. It never tells you to cut money that's already spent.
 
 - **Priorities, in order:** don't run out before the month ends, cover the bills, keep a safety cushion of
   3 to 6 months of essentials, then goals, then habits.
-- **Your own numbers:** usual essentials per day, usual spending and income, bills that repeat, paydays. A
-  tip that needs history waits until it exists.
+- **Your own numbers:** usual essentials per day, usual spending, bills that repeat. A tip that needs history
+  waits until it exists.
+- **Income and savings come whenever.** Tally never asks for a salary or a saving plan; it learns from what you
+  log.
+  - **What it learns:** where income comes from (each note's first word), which sources come back and which
+    were one-offs, your usual and leanest month, how many days usually pass between payments, and your real
+    saving pace.
+  - **How the advice uses it:** it plans on your leanest month, measures shares over the last 90 days instead
+    of one month, and carries money left over from earlier months.
+  - **When money arrives:** it suggests saving a share each time money comes in, gives a big payment a job
+    before it's spent, and warns when income is later than usual.
 - **The line under the date on Today** is about the day showing. Today gets a safe amount, and the most you can stretch to if you really must. A past day gets a verdict: over or under its safe amount, why, and what it did to the days after.
 - **It learns which tips you use:** Helpful and Not helpful reorder them. Everything is worked out on the
   phone, with no AI service.

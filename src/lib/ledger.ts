@@ -120,7 +120,9 @@ export function parseLine(text: string, guess: Guess = keywordCategory): Parsed 
     return { amount, income: lower.some((w) => WITHDRAW_WORDS.has(w)), note: label.join(" "), category: "savings" }
   }
   const income = words[0].startsWith("+") || words[at].startsWith("+") || INCOME_WORDS.has(first)
-  return { amount, income, note, category: income ? "income" : guess(note, amount) }
+  // The learned guess can say income too, for a note that was income last time ("noemi payment").
+  const category = income ? "income" : guess(note, amount)
+  return { amount, income: category === "income", note, category }
 }
 
 export const pad = (n: number) => String(n).padStart(2, "0")

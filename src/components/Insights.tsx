@@ -10,7 +10,7 @@ import { TONE, Tips } from "@/components/Tips"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { advise, categoryDetail, recurringBills, safeToSpend, savingsSummary, spendingPatterns, type Tip } from "@/lib/insights"
+import { advise, categoryDetail, incomeProfile, recurringBills, safeToSpend, savingsSummary, spendingPatterns, type Tip } from "@/lib/insights"
 import { CATEGORIES, formatPeso, formatPesoWhole, lastMonths, monthName, monthOf, monthSummary, shiftMonth, toDate, type Data } from "@/lib/ledger"
 
 type Props = {
@@ -68,6 +68,8 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
   const safe = current ? safeToSpend(data.entries, data.budget, today) : null
   const bills = current ? recurringBills(data.entries, today) : []
   const savings = savingsSummary(data.entries, data.goal, today)
+  // What Tally has learned about income so far: nobody types in a salary.
+  const income = incomeProfile(data.entries, today)
   const when = current ? "this month" : `in ${monthName(month)}`
   const prevName = monthName(shiftMonth(month, -1))
   const monthShort = toDate(month).toLocaleDateString("en-PH", { month: "short" })
@@ -182,7 +184,11 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
           <Card size="sm" className="gap-0 px-3">
             <p className="text-[11px] text-muted-foreground">Income</p>
             <p className={cn("text-base font-medium tabular-nums", s.income ? "text-income" : "text-faint")}>{s.income ? `+${formatPeso(s.income)}` : formatPeso(0)}</p>
-            {!s.income && <p className="text-[11px] text-faint">Log it with +amount</p>}
+            {income?.months ? (
+              <p className="text-[11px] text-faint">{income.steady ? `usually ${formatPesoWhole(income.typical)} a month` : `${formatPesoWhole(income.lean)} to ${formatPesoWhole(income.high)} a month`}</p>
+            ) : (
+              !s.income && <p className="text-[11px] text-faint">Log it with +amount</p>
+            )}
           </Card>
           <Card size="sm" className="gap-0 px-3">
             <p className="text-[11px] text-muted-foreground">{leftover < 0 && s.income ? "Short by" : "Left over"}</p>
