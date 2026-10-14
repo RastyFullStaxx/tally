@@ -7,6 +7,7 @@ import {
   addVote,
   advise,
   categoryDetail,
+  dayBrief,
   forecastMonth,
   recurringBills,
   safeToSpend,
@@ -345,4 +346,34 @@ test("usualMonth counts only full months, so a half month of tracking doesn't dr
   const es = [entry("2026-08-15", 2000, "rent", { category: "bills" }), entry("2026-09-01", 9000, "rent", { category: "bills" }), entry("2026-10-01", 11000, "rent", { category: "bills" })]
   assert.equal(usualMonth(es, "2026-10"), null, "August started mid-month, so only September is full")
   assert.deepEqual(usualMonth(es, "2026-11"), { spent: 1000000, income: 0, essentials: 1000000, months: 2 })
+})
+
+test("the day line judges a past day against what it could safely spend", () => {
+  const es = myOctober()
+  assert.deepEqual(dayBrief(es, 1000000, "2026-10-13", "2026-10-14"), {
+    tone: "warn",
+    label: "13 Oct went over its safe amount by",
+    amount: 241627,
+    notes: ["Spent ₱2,500 against ₱84, 4.3× a usual day (₱585). Biggest: yabu ₱2,500.", "It used up the rest of the month's budget."],
+  })
+  assert.deepEqual(dayBrief(es, 1000000, "2026-10-01", "2026-10-14"), {
+    tone: "good",
+    label: "No spending on 1 Oct",
+    amount: null,
+    notes: ["Its ₱323 stayed in the budget for the days after."],
+  })
+})
+
+test("the day line for today: a safe amount, a stretch limit, or essentials only", () => {
+  const es = myOctober()
+  assert.deepEqual(dayBrief(es, 2000000, "2026-10-14", "2026-10-14"), {
+    tone: "good",
+    label: "Safe to spend today",
+    amount: 50505,
+    notes: ["₱505 a day keeps October on budget for the 18 days left.", "If you really need to, up to ₱8,712 today still fits, with essentials only after."],
+  })
+  const gone = dayBrief(es, 1000000, "2026-10-14", "2026-10-14")
+  assert.equal(gone?.label, "The budget is used up · essentials only today")
+  assert.deepEqual(gone.notes, ["If you must spend, keep it to essentials: about ₱22 a day."])
+  assert.equal(dayBrief(es, 0, "2026-10-14", "2026-10-14"), null)
 })

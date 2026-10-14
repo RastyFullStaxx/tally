@@ -938,3 +938,90 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
     .slice(0, 6)
     .map(({ id, kind, tone, title, why, action }) => ({ id, kind, tone, title, why, action }))
 }
+
+export type DayBrief = { tone: Tip["tone"]; label: string; amount: number | null; notes: string[] }
+
+/** What a usual day costs without bills: the 28 days before `date`, or fewer once there's a week of history. */
+function usualDay(entries: Entry[], date: string): number | null {
+  const from = [firstDate(entries, date), shiftDay(date, -28)].sort()[1]
+  const n = Math.round((toDate(date).getTime() - toDate(from).getTime()) / 86_400_000)
+  if (n < 7) return null
+  return sum(entries.filter((e) => isExpense(e) && e.category !== "bills" && e.date >= from && e.date < date)) / n
+}
+
+/**
+ * The line under the date on Today, for whichever day is showing. Each day's safe amount is the budget left at its
+ * start, spread over the days left (bills still due set aside first, for today). Today gets a plan; a past day gets
+ * a verdict and what it did to the rest of the month. Null without a budget.
+ */
+export function dayBrief(entries: Entry[], budget: number, date: string, today: string): DayBrief | null {
+  if (!budget || date > today) return null
+  const month = monthOf(date)
+  const days = daysIn(month)
+  const d = dayOf(date)
+  const inMonth = entries.filter((e) => isExpense(e) && e.date.startsWith(month))
+  const day = inMonth.filter((e) => e.date === date)
+  const spent = sum(day)
+  const isToday = date === today
+  const upcoming = isToday ? unpaidThisMonth(recurringBills(entries, today), today).reduce((n, b) => n + b.amount, 0) : 0
+  const room = budget - sum(inMonth.filter((e) => e.date < date)) - upcoming
+  const perDay = Math.floor(room / (days - d + 1))
+  const after = days - d
+  const short = shortDate(date)
+  const usual = usualDay(entries, date)
+  const notes: string[] = []
+
+  // How it compares with a usual day, and what drove it.
+  const versus = (prefix: string) => {
+    const times = usual ? spent / usual : 0
+    const biggest = day.reduce((a, b) => (b.amount > a.amount ? b : a), day[0])
+    const lead = biggest && biggest.amount >= spent * 0.4 ? ` Biggest: ${biggest.note || CATEGORIES[biggest.category]} ${pesos(biggest.amount)}.` : ""
+    return `${prefix}${times >= 1.5 ? `, ${Math.round(times * 10) / 10}× a usual day (${pesos(usual!)})` : ""}.${lead}`
+  }
+  const moved = (income: boolean) => sum(entries.filter((e) => isSaving(e) && e.income === income && e.date === date))
+  const savingsNote = () => {
+    if (moved(true)) notes.push(`${isToday ? "You took" : "It took"} ${pesos(moved(true))} out of savings. Put it back on payday.`)
+    else if (moved(false)) notes.push(`${pesos(moved(false))} went into savings. Good.`)
+  }
+  let brief: DayBrief
+
+  if (isToday) {
+    const ess = essentialsPerDay(entries, today) ?? 0
+    // The most today can take with the month still in budget, if every day after is essentials only.
+    const stretch = room - Math.round(ess * after) - spent
+    if (room <= 0) {
+      brief = { tone: "warn", label: "The budget is used up · essentials only today", amount: null, notes }
+      notes.push(ess ? `If you must spend, keep it to essentials: about ${pesos(ess)} a day.` : "Anything that isn't essential can wait until the 1st.")
+      if (spent) notes.push(`Spent today ${pesos(spent)}.`)
+    } else if (spent <= perDay) {
+      brief = { tone: "good", label: "Safe to spend today", amount: perDay - spent, notes }
+      notes.push(`${pesos(perDay)} a day keeps ${monthName(month)} on budget${after ? ` for the ${after + 1} days left` : ""}.`)
+      if (stretch > perDay - spent + 10000) notes.push(`If you really need to, up to ${pesos(stretch)} today still fits, with essentials only after.`)
+      if (upcoming) notes.push(`${pesos(upcoming)} is set aside for bills still to come.`)
+    } else if (room - spent > 0 && stretch >= 0) {
+      brief = { tone: "tip", label: "Over today's safe amount by", amount: spent - perDay, notes }
+      notes.push(versus(`Spent ${pesos(spent)} against ${pesos(perDay)}`))
+      if (after) notes.push(`Each day left now gets ${pesos(Math.floor((room - spent) / after))}${stretch > 0 ? `. The most you can still spend today and stay in budget is ${pesos(stretch)}` : ""}.`)
+    } else {
+      brief = { tone: "warn", label: "Over today's safe amount by", amount: spent - perDay, notes }
+      notes.push(versus(`Spent ${pesos(spent)} against ${pesos(perDay)}`))
+      notes.push(room - spent > 0 ? `Stop for today: anything more can't be covered by essentials-only days after.` : "That used up what was left of the budget. Essentials only from tomorrow.")
+    }
+  } else if (room <= 0) {
+    brief = { tone: "warn", label: `The budget was already gone by ${short}`, amount: null, notes }
+    if (spent) notes.push(versus(`${pesos(spent)} spent that day`))
+  } else if (!spent) {
+    brief = { tone: "good", label: `No spending on ${short}`, amount: null, notes }
+    notes.push(`Its ${pesos(perDay)} stayed in the budget for the days after.`)
+  } else if (spent <= perDay) {
+    brief = { tone: "good", label: `${short} came in under its safe amount by`, amount: perDay - spent, notes }
+    notes.push(`Spent ${pesos(spent)} of ${pesos(perDay)}. The rest helps the days after.`)
+  } else {
+    brief = { tone: spent - perDay > perDay ? "warn" : "tip", label: `${short} went over its safe amount by`, amount: spent - perDay, notes }
+    notes.push(versus(`Spent ${pesos(spent)} against ${pesos(perDay)}`))
+    notes.push(room - spent <= 0 ? "It used up the rest of the month's budget." : after ? `It cut each day after it by about ${pesos((spent - perDay) / after)}.` : "")
+  }
+  savingsNote()
+  brief.notes = notes.filter(Boolean).slice(0, 3)
+  return brief
+}

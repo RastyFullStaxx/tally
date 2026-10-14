@@ -42,6 +42,7 @@ days left. It never tells you to cut money that's already spent.
   3 to 6 months of essentials, then goals, then habits.
 - **Your own numbers:** usual essentials per day, usual spending and income, bills that repeat, paydays. A
   tip that needs history waits until it exists.
+- **The line under the date on Today** is about the day showing. Today gets a safe amount, and the most you can stretch to if you really must. A past day gets a verdict: over or under its safe amount, why, and what it did to the days after.
 - **It learns which tips you use:** Helpful and Not helpful reorder them. Everything is worked out on the
   phone, with no AI service.
 

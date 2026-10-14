@@ -8,7 +8,7 @@ import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/compone
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { predictCategory, trainCategoryModel } from "@/lib/classifier"
-import { safeToSpend } from "@/lib/insights"
+import { dayBrief } from "@/lib/insights"
 import {
   CATEGORIES,
   formatPeso,
@@ -35,6 +35,10 @@ const stamp = (parsed: Parsed, date: string): Entry => ({ id: crypto.randomUUID(
 /** A line's label: savings say which way the money moved. */
 const labelOf = (e: Pick<Entry, "category" | "income">) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
 
+// The same colours as the Insights tips: green is good, gold is worth a look, coral needs action.
+const DOT = { good: "bg-income", tip: "bg-primary", warn: "bg-over" }
+const AMOUNT = { good: "text-foreground", tip: "text-primary", warn: "text-over" }
+
 const CHIP = "flex shrink-0 items-center gap-1 rounded-sm border border-dashed border-primary/40 px-1.5 py-0.5 text-[11px] leading-none text-primary"
 
 /** The launch screen: one ruled page per day, and the first line is where you type. */
@@ -56,8 +60,9 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   const lines = data.entries.filter((e) => e.date === date).sort((a, b) => b.createdAt - a.createdAt)
   const spent = lines.reduce((sum, e) => (isExpense(e) ? sum + e.amount : sum), 0)
   const month = monthSummary(data.entries, monthOf(today), data.budget, today)
-  const safe = safeToSpend(data.entries, data.budget, today)
   const day = toDate(date)
+  // The line under the date speaks about the day showing: a plan for today, a verdict for a past day.
+  const brief = dayBrief(data.entries, data.budget, date, today)
   const otherYear = day.getFullYear() !== toDate(today).getFullYear()
   const focus = () => input.current?.focus()
   const show = (next: string) => setPicked(next >= today ? null : next)
@@ -124,13 +129,17 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
         </div>
       </header>
 
-      {safe ? (
-        <button type="button" onClick={onEditBudget} aria-label="Safe to spend today. Edit monthly budget" className="flex w-full items-start gap-2 pr-4 pb-2 pl-8 text-left text-xs">
-          <span aria-hidden className={cn("mt-1 size-1.5 shrink-0 rounded-full", safe.today >= 0 ? "bg-income" : "bg-over")} />
+      {brief ? (
+        <button type="button" onClick={onEditBudget} aria-label={`${brief.label} ${brief.amount === null ? "" : formatPesoWhole(brief.amount)}. Edit monthly budget`} className="flex w-full items-start gap-2 pr-4 pb-2 pl-8 text-left text-xs">
+          <span aria-hidden className={cn("mt-1 size-1.5 shrink-0 rounded-full", DOT[brief.tone])} />
           <span className="min-w-0 flex-1">
-            <span className="text-muted-foreground">{safe.today >= 0 ? "Safe to spend today " : "Over today's safe amount by "}</span>
-            <span className={cn("font-medium tabular-nums", safe.today >= 0 ? "text-foreground" : "text-over")}>{formatPesoWhole(Math.abs(safe.today))}</span>
-            {safe.upcoming > 0 && <span className="block text-faint">{formatPesoWhole(safe.upcoming)} in bills still to come this month</span>}
+            <span className="text-muted-foreground">{brief.label} </span>
+            {brief.amount !== null && <span className={cn("font-medium tabular-nums", AMOUNT[brief.tone])}>{formatPesoWhole(brief.amount)}</span>}
+            {brief.notes.map((note) => (
+              <span key={note} className="block text-faint">
+                {note}
+              </span>
+            ))}
           </span>
           <PencilIcon className="mt-px size-3.5 shrink-0 text-faint" />
         </button>
