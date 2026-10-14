@@ -77,7 +77,18 @@ To add an icon, put its MingCute name in `scripts/icons.mjs` and run `npm run ic
 
 ## Update it
 
-Change the code, run `npm run build`, then deploy again with the same command.
+Push changes to `main` to trigger Vercel production deployment at https://tally-omega-roan.vercel.app.
+Vercel runs `npm ci`, tests, lint and the TypeScript/Vite build before updating the live URL.
+A failed check keeps the previous deployment live. GitHub Actions is configured to run the same checks on main pushes
+and pull requests; Vercel runs its own gate rather than waiting for the Actions result.
+
+The existing Vercel project `tally` is connected to `RastyFullStaxx/tally`, with `main` as the
+production branch (configured 2026-10-14). Commit and push this setup to activate GitHub CI, then
+verify the first Actions result and Vercel hosted gate at the same commit.
+No Vercel token is needed in GitHub Actions. Update pinned action SHAs deliberately when upgrading.
+
+Manual fallback: from this folder, run `npx vercel --prod --yes`. It deploys local files, including
+uncommitted changes, through the same Vercel build gate. Never create a replacement project or URL.
 
 Phones pick it up on their own. Whenever the app is opened online, and every hour it stays open, it
 checks for a new version and downloads it in the background:
