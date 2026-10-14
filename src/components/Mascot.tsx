@@ -1,6 +1,6 @@
 import { cn } from "cn"
 
-type Pose = "welcome" | "ready" | "thinking" | "saving" | "celebration" | "reassurance"
+type Pose = "welcome" | "ready" | "thinking" | "saving" | "celebration" | "reassurance" | "income" | "planning" | "backup" | "resting" | "waiting" | "peeking"
 
 /** Decorative companion: the adjacent text always explains the state. */
 export function Mascot({ pose, size = 96, className }: { pose: Pose; size?: number; className?: string }) {

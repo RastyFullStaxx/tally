@@ -45,3 +45,25 @@ Run npm run mascot:assets after changing a source pose or brandmark.png, then np
 The optimized assets are precached offline; source PNGs are excluded. The shared Mascot component keeps images decorative.
 App placements: header wordmark, welcome help, empty notebook days, Insights guidance and budget warnings, savings and goal completion.
 See integration-qa.md for observed checks and device-installation limits.
+## Additional pose pack — 2026-10-14
+
+Six more poses reference the original welcome.png so the face, coat, forehead stripes, collar and notebook charm match the first set.
+
+| Asset / Mascot pose | Character action | Suggested use |
+| --- | --- | --- |
+| income | Holding a gold coin | Income received |
+| planning | Organizing coins beside a notebook | Budget planning |
+| backup | Holding a folder securely | Backup/export and safe keeping |
+| resting | Curled up asleep | Quiet or offline moments |
+| waiting | Sitting beside an hourglass | Updates or waiting |
+| peeking | Looking around a notebook | Tips, hints and onboarding |
+
+All six have source transparent PNGs and optimized 320px runtime WebP files. The existing Mascot component accepts these pose names; for example, `<Mascot pose="income" size={96} />`.
+These are reusable assets, not additional automatic UI behaviors. The current screen placements are unchanged.
+Resting intentionally uses closed eyes and a curled silhouette. Use it with explicit explanatory text; offline status must not be inferred from the picture alone.
+Props communicate best at 96px or larger. At 48px use the expression/silhouette as decoration beside readable text.
+
+comparison-extra.html and comparison-extra.png show this pack on navy with 48px/96px examples.
+generation.json retains the exact prompts; inspection.json retains each file's technical checks.
+
+Verified for the additional pack: six 1254x1254 RGBA PNGs, transparent corners and visible padding; comparison review at 48px/96px. Lint and build pass. New runtime images total 124,712 bytes; all twelve poses plus logo total 253,878 bytes. All new runtime paths are precached, with source PNGs excluded.

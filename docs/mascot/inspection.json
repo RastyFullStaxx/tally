@@ -124,5 +124,131 @@
       0
     ],
     "bytes": 947863
+  },
+  {
+    "pose": "income",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      185,
+      71,
+      1128,
+      1198
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 1043277
+  },
+  {
+    "pose": "planning",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      89,
+      71,
+      1188,
+      1180
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 1074194
+  },
+  {
+    "pose": "backup",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      208,
+      60,
+      1090,
+      1190
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 949171
+  },
+  {
+    "pose": "resting",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      70,
+      194,
+      1216,
+      1104
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 907909
+  },
+  {
+    "pose": "waiting",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      181,
+      62,
+      1167,
+      1188
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 1088819
+  },
+  {
+    "pose": "peeking",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "visibleBounds": [
+      214,
+      73,
+      1112,
+      1178
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bytes": 906289
   }
 ]
