@@ -4,7 +4,7 @@ import { cn } from "cn"
 import { AppMenu, useInstall, useUpdates, type Sheet } from "@/components/AppMenu"
 import { EntryDrawer } from "@/components/EntryDrawer"
 import { AlertIcon, ChartIcon, NotebookIcon } from "@/components/icons"
-import { TallyBrand } from "@/components/Mascot"
+import { AnimatedTally } from "@/components/AnimatedTally"
 import { Insights } from "@/components/Insights"
 import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
@@ -45,10 +45,26 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(() => sheet !== null)
   const [notice, setNotice] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+  const [typing, setTyping] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importSuccess, setImportSuccess] = useState(false)
+  const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const importLock = useRef(false)
+  const [animateTally, setAnimateTally] = useState(() => {
+    try { return localStorage.getItem("tally:animate-mascot") !== "off" } catch { return false }
+  })
+  useEffect(() => () => { if (successTimer.current) clearTimeout(successTimer.current) }, [])
+  const toggleAnimation = () => {
+    const next = !animateTally
+    setAnimateTally(next)
+    try { localStorage.setItem("tally:animate-mascot", next ? "on" : "off") } catch { /* Session preference still works. */ }
+  }
 
   const commit = (next: Data) => {
     setData(next)
-    setSaved(save(next))
+    const stored = save(next)
+    setSaved(stored)
+    return stored
   }
   const upsert = (entry: Entry) =>
     commit({
@@ -76,20 +92,32 @@ export default function App() {
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     event.target.value = ""
-    if (!file) return
+    if (!file || importLock.current) return
+    importLock.current = true
+    setImporting(true)
+    setImportSuccess(false)
     try {
       const { data: merged, added, skipped } = await importBackup(file, data)
-      commit(merged)
+      if (commit(merged)) {
+        setImportSuccess(true)
+        if (successTimer.current) clearTimeout(successTimer.current)
+        successTimer.current = setTimeout(() => setImportSuccess(false), 1000)
+      }
       say(`Imported ${added} ${added === 1 ? "entry" : "entries"}${skipped ? `, skipped ${skipped} unreadable` : ""}.`)
     } catch (error) {
       say((error as Error).message)
+    } finally {
+      importLock.current = false
+      setImporting(false)
     }
   }
 
-  const menu = <AppMenu updates={updates} install={install} onOpen={open} onExport={() => exportBackup(data)} onImport={() => fileInput.current?.click()} say={say} />
+  const menu = <AppMenu updates={updates} install={install} onOpen={open} onExport={() => exportBackup(data)} onImport={() => fileInput.current?.click()} say={say} animateTally={animateTally} onToggleAnimation={toggleAnimation} />
 
   return (
-    <div className="mx-auto min-h-svh max-w-md pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+4rem)]">
+    <div className="mx-auto min-h-svh max-w-md pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+4rem)]"
+      onFocusCapture={(event) => setTyping(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)}
+      onBlurCapture={() => setTyping(false)}>
       {!saved && (
         <p role="alert" className="sticky top-[env(safe-area-inset-top)] z-30 mx-3 mt-2 flex items-center gap-2 rounded-md bg-over/15 px-3 py-2 text-sm text-over backdrop-blur-md">
           <AlertIcon className="size-4 shrink-0" />
@@ -102,7 +130,15 @@ export default function App() {
         </p>
       )}
 
-      <div className="px-3 pt-2"><TallyBrand /></div>
+      <div className="px-3 pt-1">
+        <AnimatedTally
+          key={importing || updates.checking || updates.downloading ? "working" : importSuccess ? "success" : "idle"}
+          activity={importing || updates.checking || updates.downloading ? "working" : importSuccess ? "success" : "idle"}
+          statusText={importing ? "Importing backup…" : updates.downloading ? "Downloading update…" : updates.checking ? (updates.ready ? "Applying update…" : "Checking updates…") : importSuccess ? "Backup imported." : updates.ready ? "Update ready." : ""}
+          paused={typing || sheetOpen || drawerOpen}
+          enabled={animateTally}
+        />
+      </div>
 
       {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts) only exists while open. */}
       <main hidden={tab !== "today"} className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">

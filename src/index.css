@@ -111,3 +111,10 @@
     background: rgb(216 181 106 / 35%);
   }
 }
+
+/* Sprite strips move inside a fixed frame; layout never animates. */
+.tally-strip { display: block; max-width: none; object-fit: fill; }
+@keyframes tally-frames { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .tally-strip { animation: none !important; transform: none !important; }
+}

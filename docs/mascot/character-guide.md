@@ -67,3 +67,7 @@ comparison-extra.html and comparison-extra.png show this pack on navy with 48px/
 generation.json retains the exact prompts; inspection.json retains each file's technical checks.
 
 Verified for the additional pack: six 1254x1254 RGBA PNGs, transparent corners and visible padding; comparison review at 48px/96px. Lint and build pass. New runtime images total 124,712 bytes; all twelve poses plus logo total 253,878 bytes. All new runtime paths are precached, with source PNGs excluded.
+
+## Animated header companion
+
+The animation implementation supersedes the earlier static-only boundary for the header. See [animation-guide.md](animation-guide.md) for behavior, accessibility controls, corrected four-limb anatomy, production assets and verification limits. The existing contextual pose library and app icons stay static.

@@ -3,7 +3,7 @@ import { useRegisterSW } from "virtual:pwa-register/react"
 
 import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TargetIcon, UploadIcon, WalletIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export type Sheet = "help" | "budget" | "goal" | "install" | "guide"
 
@@ -16,17 +16,48 @@ const HOUR = 60 * 60 * 1000
  */
 export function useUpdates() {
   const registration = useRef<ServiceWorkerRegistration | null>(null)
+  const [checking, setChecking] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const pendingCheck = useRef<Promise<string> | null>(null)
+  const cleanupRegistration = useRef<(() => void) | null>(null)
+  useEffect(() => () => cleanupRegistration.current?.(), [])
   const {
     needRefresh: [ready],
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_url, r) {
       if (!r) return
+      cleanupRegistration.current?.()
       registration.current = r
+      let cleanupWorker: (() => void) | null = null
+      const watch = () => {
+        cleanupWorker?.()
+        const worker = r.installing
+        const sync = () => setDownloading(worker?.state === "installing")
+        sync()
+        worker?.addEventListener("statechange", sync)
+        cleanupWorker = () => worker?.removeEventListener("statechange", sync)
+      }
+      r.addEventListener("updatefound", watch)
+      watch()
       // Check when the app comes back to the foreground, and hourly while it stays open.
-      const check = () => navigator.onLine && r.update().catch(() => {})
-      document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && check())
-      setInterval(check, HOUR)
+      const check = () => {
+        if (!navigator.onLine || pendingCheck.current) return
+        setChecking(true)
+        pendingCheck.current = r.update().then(() => "Checked for updates.", () => "Couldn't check.").finally(() => {
+          pendingCheck.current = null
+          setChecking(false)
+        })
+      }
+      const foreground = () => { if (document.visibilityState === "visible") check() }
+      document.addEventListener("visibilitychange", foreground)
+      const interval = setInterval(check, HOUR)
+      cleanupRegistration.current = () => {
+        clearInterval(interval)
+        document.removeEventListener("visibilitychange", foreground)
+        r.removeEventListener("updatefound", watch)
+        cleanupWorker?.()
+      }
     },
   })
 
@@ -36,7 +67,7 @@ export function useUpdates() {
   }, [ready])
 
   /** Checks now (or applies a waiting update) and says what happened, for the notice line. */
-  async function check(): Promise<string> {
+  async function performCheck(): Promise<string> {
     if (ready) {
       await updateServiceWorker(true)
       return "Updating…"
@@ -52,7 +83,16 @@ export function useUpdates() {
     }
   }
 
-  return { ready, apply: () => updateServiceWorker(true), check }
+  function check(): Promise<string> {
+    if (pendingCheck.current) return pendingCheck.current
+    setChecking(true)
+    pendingCheck.current = performCheck().finally(() => {
+      pendingCheck.current = null
+      setChecking(false)
+    })
+    return pendingCheck.current
+  }
+  return { ready, checking, downloading, apply: check, check }
 }
 
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> }
@@ -102,14 +142,16 @@ type Props = {
   onExport: () => void
   onImport: () => void
   say: (text: string) => void
+  animateTally: boolean
+  onToggleAnimation: () => void
 }
 
 /** The ··· menu in both screens' headers, with the Update pill beside it when a new version is waiting. */
-export function AppMenu({ updates, install, onOpen, onExport, onImport, say }: Props) {
+export function AppMenu({ updates, install, onOpen, onExport, onImport, say, animateTally, onToggleAnimation }: Props) {
   return (
     <div className="flex items-center gap-1">
       {updates.ready && (
-        <Button size="sm" onClick={updates.apply} className="relative gap-1">
+        <Button size="sm" disabled={updates.checking} onClick={updates.apply} className="relative gap-1">
           <RefreshIcon className="size-3.5" />
           Update
           <span aria-hidden className="absolute -top-1 -right-1 size-2.5 rounded-full border-2 border-background bg-over" />
@@ -139,7 +181,7 @@ export function AppMenu({ updates, install, onOpen, onExport, onImport, say }: P
               Install Tally
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onSelect={async () => say(await updates.check())}>
+          <DropdownMenuItem disabled={updates.checking} onSelect={async () => say(await updates.check())}>
             <RefreshIcon />
             {updates.ready ? "Update now" : "Check for updates"}
             {updates.ready && <span aria-hidden className="ml-auto size-2 rounded-full bg-over" />}
@@ -157,6 +199,10 @@ export function AppMenu({ updates, install, onOpen, onExport, onImport, say }: P
             <QuestionIcon />
             Which category?
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuCheckboxItem checked={animateTally} onCheckedChange={onToggleAnimation}>
+            Animate Tally
+          </DropdownMenuCheckboxItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onExport}>
             <DownloadIcon />
