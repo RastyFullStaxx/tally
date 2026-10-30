@@ -44,7 +44,11 @@ async function flow(name, seed, run) {
   }
 }
 
-const stored = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("tally:v1") ?? '{"entries":[]}'))
+// The app writes to storage just after the screen paints, so give that write a moment before reading it.
+const stored = async (page) => {
+  await page.waitForTimeout(100)
+  return page.evaluate(() => JSON.parse(localStorage.getItem("tally:v1") ?? '{"entries":[]}'))
+}
 const line = (page) => page.getByRole("textbox", { name: /New entry/ })
 const notice = (page) => page.locator("div[role=status] > div")
 const pad = (n) => String(n).padStart(2, "0")

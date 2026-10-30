@@ -654,7 +654,8 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
 
   // One kind of extra taking a big share.
   const top = cats.find((x) => WANTS.includes(x.category))
-  if (top && !mentioned.has(top.category) && s.spent >= 300000 && top.share >= 0.35) {
+  // Not when one purchase makes up most of it: that's a one-off (its own tip covers it), not a habit to trim.
+  if (top && !mentioned.has(top.category) && s.spent >= 300000 && top.share >= 0.35 && top.biggest.amount < top.total / 2) {
     const trim = toMonthEnd(top.total) / 10
     add(
       "category-share",
@@ -723,7 +724,8 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
   }
 
   // One expense big enough to plan for, and what the month looks like without it.
-  const big = p.largest
+  // Any expense, bills included: setting money aside each week for a big rent is sound advice.
+  const big = expenses.reduce<Entry | null>((a, b) => (!a || b.amount > a.amount ? b : a), null)
   if (big && s.spent >= 300000 && big.amount / s.spent >= 0.15) {
     const without = s.spent - big.amount
     add(

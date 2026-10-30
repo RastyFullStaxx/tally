@@ -178,7 +178,7 @@ test("spendingPatterns splits needs from wants and finds the big days", () => {
   assert.equal(p.other, 0)
   assert.equal(p.perDay, 194000)
   assert.deepEqual(p.busiest, { date: "2026-10-01", total: 800000 })
-  assert.equal(p.largest?.note, "rent")
+  assert.equal(p.largest?.note, "puregold", "a purchase, not the rent bill")
   assert.equal(p.noSpend, 1)
 })
 
