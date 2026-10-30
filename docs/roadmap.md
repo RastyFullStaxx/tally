@@ -14,12 +14,21 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **Search and filter entries** (`rasty/tally-search`, started 2026-10-30 14:05 UTC)
+  - [ ] `searchEntries(entries, query, filter)` and `totalsOf(entries)` in `ledger.ts`: every typed word
+        must match the note (substring, accents ignored), the category name (prefix) or the amount
+        (`245`, `₱245`, `1,250`, `1k`); newest first
+  - [ ] Tests in `tests/ledger.test.ts`
+  - [ ] `SearchIcon`, `CloseIcon` in `scripts/icons.mjs` and `icons.tsx` (MingCute `search-line`,
+        `close-line`; api.iconify.design is blocked here, so bodies come from `@iconify-json/mingcute`)
+  - [ ] `SearchSheet.tsx`: input with clear, filter chips (All, 8 categories, Income, Savings), totals
+        line, results grouped by month with the month's spending, 36px rows, newest 150 rows shown
+  - [ ] Search button in the Today header; tapping a result closes search and opens the edit drawer;
+        the query and filter survive, so reopening search returns to the same results
+  - [ ] README + How to use mention it; gate; browser check at phone width; merge
 
 ## Next up (ranked)
 
-1. **Search and filter entries.** Find a merchant or note across months, filter by category, and tap a
-   result to edit it.
 2. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
    backend; data ownership; merging with `tally:v1`; why the origin never changes. Then an
    `AuthProvider`/`SyncAdapter` seam with a local no-op default and a flagged-off sign-in screen.
