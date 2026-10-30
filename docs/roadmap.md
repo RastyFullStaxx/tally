@@ -28,15 +28,21 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **Category prediction quality** (`rasty/tally-classifier-eval`, started 2026-10-30 15:35 UTC)
+  - [ ] `scripts/eval-classifier.ts` (`npm run eval:classifier`): seeded synthetic personas with their own
+        merchants, filing habits, typos and short forms; prequential accuracy (each entry guessed from the
+        ones before it, the way the chip guesses), split by where the guess came from
+  - [ ] Baseline numbers for today's model; candidates: kNN over character trigrams of the note, and a
+        trigram fallback only when no word is known
+  - [ ] Change `classifier.ts` only if a candidate wins clearly and loses nothing; tests for it; ADR 0002
+        updated with the numbers and sources
+  - [ ] Gate; merge
 
 ## Next up (ranked)
 
 1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-2. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
-   real-shaped entries, and compare a kNN over merchant text before changing anything.
 3. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
 4. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
