@@ -29,6 +29,8 @@ before (`jolibee`, `pureg`) still finds its category.
 
 - The guess shows on the chip at the end of the line, before you press return. If it's wrong, tap the
   chip and pick the right category, and the line is saved with it.
+- If an amount is far off what the same thing usually costs (`coffee 1200` when coffee is about ₱120), a notice
+  asks whether it's a typo, and **Fix** opens the entry.
 - To fix an entry you've already saved, tap it. Deleting asks you to tap twice, and **Undo** on the notice
   that follows puts it back for 5 seconds.
 - Both lists show what goes in each category. **··· → Which category?** adds a few questions that decide

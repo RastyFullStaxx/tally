@@ -4,6 +4,7 @@
 import {
   CATEGORIES,
   daysIn,
+  formatPeso,
   formatPesoWhole as pesos,
   isExpense,
   isIncome,
@@ -217,6 +218,36 @@ export function unusualWeeks(entries: Entry[], today: string): Unusual[] {
     else if (WANTS.includes(category) && usual >= 100000 && thisWeek <= usual * 0.5) found.push({ category, thisWeek, usual, weeks: weekEnds.length, direction: "low" })
   }
   return found.sort((a, b) => Math.abs(b.thisWeek - b.usual) - Math.abs(a.thisWeek - a.usual))
+}
+
+export type OddAmount = { item: string; usual: number; times: number; direction: "high" | "low" }
+
+/**
+ * A new expense far from what the same thing usually costs, which is most often a typo ("coffee 1200" for 120).
+ * "The same thing" is the same first word in the same category, logged at least 5 times in the 180 days before.
+ * High means 4× the usual (the middle amount), more than half again the most ever paid, and ₱200 over; low
+ * means a quarter of the usual, under two-thirds of the least ever paid, and ₱100 under. So a ₱15 jeep ride
+ * that becomes ₱60, or a pricier Grab across town, isn't flagged.
+ */
+export function unusualAmount(entries: Entry[], entry: Entry): OddAmount | null {
+  if (!isExpense(entry) || !wordsOf(entry.note).length) return null
+  const item = itemOf(entry)
+  const from = shiftDay(entry.date, -180)
+  const past = entries.filter((e) => e.id !== entry.id && isExpense(e) && e.category === entry.category && itemOf(e) === item && e.date >= from && e.date <= entry.date)
+  if (past.length < 5) return null
+  const amounts = past.map((e) => e.amount)
+  const usual = median(amounts)
+  const times = entry.amount / usual
+  if (times >= 4 && entry.amount > Math.max(...amounts) * 1.5 && entry.amount - usual >= 20000) return { item, usual, times, direction: "high" }
+  if (times <= 0.25 && entry.amount * 1.5 < Math.min(...amounts) && usual - entry.amount >= 10000) return { item, usual, times, direction: "low" }
+  return null
+}
+
+/** What the notice says about an odd amount, in plain words. A factor near 10 is usually one zero too many or too few. */
+export function describeOddAmount(odd: OddAmount, amount: number): string {
+  const tenfold = odd.direction === "high" ? odd.times >= 8 && odd.times <= 12 : odd.times >= 1 / 12 && odd.times <= 1 / 8
+  const what = odd.direction === "high" ? `is ${Math.round(odd.times)}× the usual ${pesos(odd.usual)}` : `is far below the usual ${pesos(odd.usual)}`
+  return `${formatPeso(amount)} for ${odd.item} ${what}.${tenfold ? (odd.direction === "high" ? " An extra zero?" : " A zero missing?") : ""}`
 }
 
 export type Forecast = { total: number; upcoming: number; dailyRate: number; fromHistory: boolean }
