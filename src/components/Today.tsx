@@ -6,8 +6,7 @@ import { cn } from "cn"
 import { CalendarSheet } from "@/components/CalendarSheet"
 import { CategoryChip } from "@/components/category"
 import { CategoryMenu } from "@/components/CategoryGuide"
-import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon, SearchIcon } from "@/components/icons"
-import { SearchSheet } from "@/components/SearchSheet"
+import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { predictCategory, trainCategoryModel } from "@/lib/classifier"
@@ -27,7 +26,6 @@ import {
   type CategoryId,
   type Data,
   type Entry,
-  type Filter,
   type Parsed,
 } from "@/lib/ledger"
 
@@ -55,8 +53,6 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   const [picking, setPicking] = useState(false)
   // The calendar, opened from the date. The key starts it on the picked day's month each time.
   const [calendar, setCalendar] = useState({ open: false, key: 0 })
-  // Search keeps what was typed and the filter after it closes, so editing a result and coming back finds the same list.
-  const [search, setSearch] = useState<{ open: boolean; query: string; filter: Filter }>({ open: false, query: "", filter: "all" })
   const input = useRef<HTMLInputElement>(null)
   // Retrained whenever entries change, so every save and every corrected category teaches the next guess.
   const model = useMemo(() => trainCategoryModel(data.entries), [data.entries])
@@ -125,9 +121,6 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
               Today
             </Button>
           )}
-          <Button variant="ghost" size="icon-lg" aria-label="Search entries" aria-haspopup="dialog" onClick={() => setSearch((s) => ({ ...s, open: true }))}>
-            <SearchIcon className="size-4" />
-          </Button>
           <Button variant="ghost" size="icon-lg" aria-label="Previous day" onClick={() => go(-1)}>
             <LeftIcon className="size-4" />
           </Button>
@@ -273,20 +266,6 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
           )}
         </DrawerContent>
       </Drawer>
-
-      <SearchSheet
-        open={search.open}
-        onOpenChange={(open) => setSearch((s) => ({ ...s, open }))}
-        entries={data.entries}
-        query={search.query}
-        onQuery={(query) => setSearch((s) => ({ ...s, query }))}
-        filter={search.filter}
-        onFilter={(filter) => setSearch((s) => ({ ...s, filter }))}
-        onPick={(entry) => {
-          setSearch((s) => ({ ...s, open: false }))
-          onEdit(entry)
-        }}
-      />
 
       <CalendarSheet
         open={calendar.open}

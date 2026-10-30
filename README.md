@@ -32,6 +32,10 @@ a small model on the phone, and recent entries count most.
 - Both lists show what goes in each category. **··· → Which category?** adds a few questions that decide
   for you.
 
+To find an entry from any month, tap the magnifier at the top of either screen. Type part of a note
+(`jolli`), a category (`transport`) or an amount (`245`), or pick a category, and it shows every match by
+month with what they add up to. Tap one to fix it; the search is still there when you come back.
+
 To file something on an earlier day, use ‹ ›, or tap the date for the calendar. Each day there shows what
 you spent, in coral when it was more than a day's share of your budget after bills.
 

@@ -28,7 +28,7 @@ const LIMIT = 150
 
 const labelOf = (e: Entry) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
 
-/** Every entry ever logged, found by what you wrote, the category or the amount. Opened from Today's header. */
+/** Every entry ever logged, found by what you wrote, the category or the amount. Opened from the top of both screens. */
 export function SearchSheet({ open, onOpenChange, ...search }: Props) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>

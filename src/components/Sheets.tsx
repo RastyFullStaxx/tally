@@ -4,7 +4,7 @@ import { useState, type FormEvent, type ReactNode } from "react"
 
 import type { Sheet } from "@/components/AppMenu"
 import { CategoryGuideList } from "@/components/CategoryGuide"
-import { AddSquareIcon, CalendarIcon, ChartIcon, MoreIcon, PencilIcon, PiggyIcon, ReturnIcon, ShareIcon, TrendUpIcon } from "@/components/icons"
+import { AddSquareIcon, CalendarIcon, ChartIcon, MoreIcon, PencilIcon, PiggyIcon, ReturnIcon, SearchIcon, ShareIcon, TrendUpIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
@@ -113,6 +113,7 @@ const HOW_TO = [
   { icon: PiggyIcon, title: "Saving?", body: <>Just say so: <Ex>1000 savings</Ex> puts it aside, <Ex>withdraw 500</Ex> takes some out. Neither counts as spending.</> },
   { icon: PencilIcon, title: "Wrong category?", body: <>Tap the chip at the end of the line, or tap the entry later. Tally learns, so next time it guesses right.</> },
   { icon: CalendarIcon, title: "Forgot one?", body: <>Tap ‹ at the top to go back a day.</> },
+  { icon: SearchIcon, title: "Looking for one?", body: <>Tap the magnifier at the top and type <Ex>grab</Ex> or <Ex>245</Ex>, or pick a category. Tap a result to fix it.</> },
   { icon: ChartIcon, title: "Where did it go?", body: <>Insights shows what's safe to spend today, the bills coming up, and what to do next.</> },
   { icon: MoreIcon, title: "Set it once.", body: <>Your monthly budget and savings goal are in ··· at the top.</> },
 ]
