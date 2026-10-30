@@ -5,6 +5,10 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Category guesses survive typos and short forms. When no word is known and no keyword fits, the
+  past notes most alike by their letters vote. On `npm run eval:classifier` (three synthetic personas,
+  8,018 expenses, each guessed from the ones before it) accuracy goes from 93.9% to 97.2%, and from 74.4%
+  to 88.5% the first time a note is typed. A full kNN did no better. Details in ADR 0002.
 - 2026-10-30: Accounts and sync, prepared and off. ADR 0003 sets what any sync must keep (the phone stays the
   source of truth, the origin never changes, per-entry last write wins, tombstones for deletes, an encrypted
   copy) and compares Supabase, Firebase, Auth.js and a Google Drive app folder. `AuthProvider` and
@@ -28,30 +32,22 @@ production and only the owner merges into it.
 
 ## In progress
 
-- **Category prediction quality** (`rasty/tally-classifier-eval`, started 2026-10-30 15:35 UTC)
-  - [ ] `scripts/eval-classifier.ts` (`npm run eval:classifier`): seeded synthetic personas with their own
-        merchants, filing habits, typos and short forms; prequential accuracy (each entry guessed from the
-        ones before it, the way the chip guesses), split by where the guess came from
-  - [ ] Baseline numbers for today's model; candidates: kNN over character trigrams of the note, and a
-        trigram fallback only when no word is known
-  - [ ] Change `classifier.ts` only if a candidate wins clearly and loses nothing; tests for it; ADR 0002
-        updated with the numbers and sources
-  - [ ] Gate; merge
+- Nothing.
 
 ## Next up (ranked)
 
 1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-3. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
-4. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
+2. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
+3. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
 ## Owner decisions
 
 - **Merged branches to delete on GitHub:** `rasty/tally-undo-delete`, `rasty/tally-search`,
-  `rasty/tally-narrow-header`, `rasty/tally-csv-export` and
-  `rasty/tally-accounts-seam`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
+  `rasty/tally-narrow-header`, `rasty/tally-csv-export`,
+  `rasty/tally-accounts-seam` and `rasty/tally-classifier-eval`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
   branch deletions, so they couldn't be removed from here.
 - **Accounts and sync (ADR 0003).** First, try Google sign-in in the installed app on the iPhone (Supabase's
   PKCE redirect and Google Identity Services). Then pick the provider (recommended: Supabase, encrypted,
