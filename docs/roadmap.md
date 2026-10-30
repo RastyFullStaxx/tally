@@ -5,37 +5,32 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Undo after delete. Deleting an entry shows "Deleted <note> · ₱<amount>" with Undo for 5 seconds,
+  which puts it back with the same id in the same place. The notice area is now a live region that
+  stays mounted, so screen readers announce every notice.
 - 2026-10-30: Insights and Recharts load on demand. Today's launch JS drops from 263 KB to 151 KB
   gzipped and the large-chunk build warning is gone. The chunk is still precached and fetched on idle,
   with a skeleton while it loads and a Try again (reload) card if it can't be read.
 
 ## In progress
 
-- **Undo after delete** (`rasty/tally-undo-delete`, started 2026-10-30 13:45 UTC)
-  - [x] `removeEntry` / `restoreEntry` in `ledger.ts`: restore puts the entry back with the same id at
-        its old position, and does nothing if that id is already there
-  - [x] Tests for both in `tests/ledger.test.ts`
-  - [x] Notice in `App.tsx` carries an optional action: "Deleted <note> · ₱<amount>" with Undo for 5 s,
-        tap target 44px, newest notice replaces the older one
-  - [ ] Gate (`npm ci`, test, lint, build), check in the browser at phone width, merge into `rasty/tally-next`
+- Nothing.
 
 ## Next up (ranked)
 
-1. **Undo after delete.** Deleting an entry in the edit drawer is instant and final. A 5-second
-   "Deleted · Undo" notice restores it with the same id.
-2. **Search and filter entries.** Find a merchant or note across months, filter by category, and tap a
+1. **Search and filter entries.** Find a merchant or note across months, filter by category, and tap a
    result to edit it.
-3. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
+2. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
    backend; data ownership; merging with `tally:v1`; why the origin never changes. Then an
    `AuthProvider`/`SyncAdapter` seam with a local no-op default and a flagged-off sign-in screen.
-4. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
+3. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-5. **CSV export** next to the JSON backup, for spreadsheets.
-6. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
+4. **CSV export** next to the JSON backup, for spreadsheets.
+5. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
    real-shaped entries, and compare a kNN over merchant text before changing anything.
-7. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
-8. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
+6. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
+7. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
 ## Owner decisions
