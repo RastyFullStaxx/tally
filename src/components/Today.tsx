@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react
 import { cn } from "cn"
 
 import { CalendarSheet } from "@/components/CalendarSheet"
-import { CategoryChip } from "@/components/category"
+import { CategoryChip, labelOf } from "@/components/category"
 import { CategoryMenu } from "@/components/CategoryGuide"
 import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
@@ -33,9 +33,6 @@ type Props = { data: Data; today: string; menu: ReactNode; onAdd: (entry: Entry)
 
 // Ids and clock readings are minted out here, away from render.
 const stamp = (parsed: Parsed, date: string): Entry => ({ id: crypto.randomUUID(), date, createdAt: Date.now(), ...parsed })
-
-/** A line's label: savings say which way the money moved. */
-const labelOf = (e: Pick<Entry, "category" | "income">) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
 
 // The same colours as the Insights tips: green is good, gold is worth a look, coral needs action.
 const DOT = { good: "bg-income", tip: "bg-primary", warn: "bg-over" }
