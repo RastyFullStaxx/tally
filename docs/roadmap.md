@@ -8,6 +8,10 @@ When working in an interactive session (not the hourly routine), feature branche
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: A steadier month-end forecast. A one-off big buy counts once instead of being projected, and a
+  young month leans on the last 4 weeks when most of them were logged. On `npm run eval:forecast` (five
+  synthetic people, six months each) the average miss from the 7th falls from 13.8% to 11.1%, the bias from
+  +7.1% to +3.7%, and the second week's miss from 19.5% to 14.5%. Weekday weights were tried: no gain.
 - 2026-10-30: A likely typo in an amount is caught as it's logged. When a new line is far off what the same
   thing (first word and category, 5+ times in 180 days) usually costs, a notice says so ("₱1,200 for coffee
   is 10× the usual ₱125. An extra zero?") with Fix, which opens the entry.
@@ -45,8 +49,7 @@ When working in an interactive session (not the hourly routine), feature branche
 1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-2. **Seasonality-aware forecast** in `insights.ts` (weekends and paydays), advising only on the days ahead.
-3. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
+2. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
 ## Owner decisions
