@@ -71,6 +71,8 @@ On both screens, top right:
 - **Monthly budget**, also behind the pencil on the Insights budget card and the safe-to-spend line on Today.
 - **Savings goal.** Insights shows how close you are and when you'll get there.
 - **Which category?**, **Export backup** and **Import backup**.
+- **Export for spreadsheets.** Every entry as a CSV (date, type, category, note, amount) for Numbers, Excel or
+  Google Sheets. It's a copy to read; to restore, use the backup.
 
 ## Develop
 

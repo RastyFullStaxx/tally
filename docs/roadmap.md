@@ -5,6 +5,9 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Export for spreadsheets (··· menu). Every entry as a CSV, oldest first: Date, Type, Category,
+  Note and Amount as a plain number. UTF-8 with a BOM so Excel shows ₱ and ñ; notes that start like a
+  formula are kept as text.
 - 2026-10-30: Today's date stays on one line. On a past day in a long month, "30 September" used to wrap at
   390px and below, and the Today button overlapped it at 320px. The month now goes short ("30 Sept") only
   when the buttons leave too little room; screen readers still hear the full date.
@@ -31,17 +34,16 @@ production and only the owner merges into it.
 2. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-3. **CSV export** next to the JSON backup, for spreadsheets.
-4. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
+3. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
    real-shaped entries, and compare a kNN over merchant text before changing anything.
-5. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
-6. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
+4. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
+5. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
 ## Owner decisions
 
-- **Merged branches to delete on GitHub:** `rasty/tally-undo-delete`, `rasty/tally-search` and
-  `rasty/tally-narrow-header`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
+- **Merged branches to delete on GitHub:** `rasty/tally-undo-delete`, `rasty/tally-search`,
+  `rasty/tally-narrow-header` and `rasty/tally-csv-export`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
   branch deletions, so they couldn't be removed from here.
 - No product decisions waiting yet. Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
   will be asked here before either is built.

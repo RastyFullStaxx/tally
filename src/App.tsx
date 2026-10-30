@@ -13,7 +13,7 @@ import { Today } from "@/components/Today"
 import { Button } from "@/components/ui/button"
 import { addVote, tipFeatures, type Tip } from "@/lib/insights"
 import { formatPeso, localDate, removeEntry, restoreEntry, type Data, type Entry, type Filter, type Removed } from "@/lib/ledger"
-import { exportBackup, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
+import { exportBackup, exportCsv, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
 
 const TABS = [
   { id: "today", label: "Today", icon: NotebookIcon },
@@ -133,7 +133,7 @@ export default function App() {
     }
   }
 
-  const menu = <AppMenu updates={updates} install={install} onOpen={open} onExport={() => exportBackup(data)} onImport={() => fileInput.current?.click()} say={say} animateTally={animateTally} onToggleAnimation={toggleAnimation} />
+  const menu = <AppMenu updates={updates} install={install} onOpen={open} onExport={() => exportBackup(data)} onExportCsv={() => exportCsv(data)} onImport={() => fileInput.current?.click()} say={say} animateTally={animateTally} onToggleAnimation={toggleAnimation} />
 
   return (
     <div className="mx-auto min-h-svh max-w-md pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+4rem)]"
