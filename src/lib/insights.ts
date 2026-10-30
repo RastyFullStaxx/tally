@@ -432,7 +432,12 @@ export function tipFeatures(entries: Entry[], budget: number, today: string): Re
     incomeTypical: (inc?.typical ?? 0) / 100,
     incomeSteady: inc?.steady ? 1 : 0,
     daysSinceIncome: inc?.sinceDays ?? -1,
-    daysSinceSaving: deposits.length ? daysBetween(deposits.reduce((m, e) => (e.date > m ? e.date : m), deposits[0].date), today) : -1,
+    daysSinceSaving: deposits.length
+      ? daysBetween(
+          deposits.reduce((m, e) => (e.date > m ? e.date : m), deposits[0].date),
+          today
+        )
+      : -1,
     onHand: onHand(entries, today) / 100,
   }
 }

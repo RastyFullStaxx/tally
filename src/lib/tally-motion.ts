@@ -9,13 +9,7 @@ export const TALLY_CLIPS = {
 } as const
 
 /** Real work wins; reduced motion/hidden pages never play a clip. */
-export function tallyMotion(
-  activity: TallyActivity,
-  reaction: "idle" | "wave" | null,
-  allowed: boolean,
-  paused: boolean,
-  workReady: boolean
-): TallyClip | null {
+export function tallyMotion(activity: TallyActivity, reaction: "idle" | "wave" | null, allowed: boolean, paused: boolean, workReady: boolean): TallyClip | null {
   if (!allowed) return null
   if (activity === "working") return workReady ? "working" : null
   if (activity === "success") return "success"

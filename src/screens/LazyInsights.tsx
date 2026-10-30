@@ -30,7 +30,9 @@ function Shell({ today, menu, children }: { today: string; menu: ReactNode; chil
 function Loading({ today, menu }: { today: string; menu: ReactNode }) {
   return (
     <Shell today={today} menu={menu}>
-      <span className="sr-only" role="status">Loading Insights…</span>
+      <span className="sr-only" role="status">
+        Loading Insights…
+      </span>
       {[132, 176, 96].map((height) => (
         <Card key={height} aria-hidden className="animate-pulse motion-reduce:animate-none" style={{ height }} />
       ))}

@@ -87,9 +87,7 @@ function matches(e: Entry, word: string) {
 /** Entries in the filter where every word typed matches ("jolli", "grab office", "245", "food"), newest first. */
 export function searchEntries(entries: Entry[], query: string, filter: Filter = "all"): Entry[] {
   const words = wordsOf(fold(query))
-  return entries
-    .filter((e) => (filter === "all" || e.category === filter) && words.every((w) => matches(e, w)))
-    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
+  return entries.filter((e) => (filter === "all" || e.category === filter) && words.every((w) => matches(e, w))).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
 }
 
 /** What a set of entries adds up to: spending, income, and what went into savings net of withdrawals. */

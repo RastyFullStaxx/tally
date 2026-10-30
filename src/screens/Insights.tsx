@@ -92,7 +92,10 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, 
   if (data.budget) {
     const perDay = safe?.perDay ?? s.perDay
     if (s.spent > data.budget)
-      status = { tone: "warn", text: current ? `Over budget by ${formatPesoWhole(s.spent - data.budget)} · essentials only until the 1st` : `Went ${formatPesoWhole(s.spent - data.budget)} over budget` }
+      status = {
+        tone: "warn",
+        text: current ? `Over budget by ${formatPesoWhole(s.spent - data.budget)} · essentials only until the 1st` : `Went ${formatPesoWhole(s.spent - data.budget)} over budget`,
+      }
     else if (!current) status = { tone: "good", text: `Finished ${formatPesoWhole(data.budget - s.spent)} under budget` }
     else if (perDay < 0) status = { tone: "warn", text: `Bills still to come will take you over budget` }
     else if (s.spent > s.pace) status = { tone: "tip", text: `${formatPesoWhole(s.spent - s.pace)} more than planned by today · ${formatPesoWhole(perDay)} a day left` }
@@ -171,7 +174,13 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, 
               </div>
               {status && (
                 <p className={cn("flex items-center gap-1.5 text-xs", TONE[status.tone].className)}>
-                  {status.tone === "warn" ? <Mascot pose="reassurance" size={48} /> : status.tone === "good" ? <CheckCircleIcon className="size-3.5 shrink-0" /> : <AlertIcon className="size-3.5 shrink-0" />}
+                  {status.tone === "warn" ? (
+                    <Mascot pose="reassurance" size={48} />
+                  ) : status.tone === "good" ? (
+                    <CheckCircleIcon className="size-3.5 shrink-0" />
+                  ) : (
+                    <AlertIcon className="size-3.5 shrink-0" />
+                  )}
                   {status.text}
                 </p>
               )}
@@ -184,7 +193,10 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, 
         </Card>
 
         <Card className="gap-1 px-3">
-          <div className="flex items-center justify-between"><SectionTitle>What to do</SectionTitle>{tips.length > 0 && <Mascot pose="thinking" size={48} />}</div>
+          <div className="flex items-center justify-between">
+            <SectionTitle>What to do</SectionTitle>
+            {tips.length > 0 && <Mascot pose="thinking" size={48} />}
+          </div>
           <Tips tips={tips} votes={data.votes} onVote={onVote} />
         </Card>
 
@@ -193,7 +205,9 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, 
             <p className="text-[11px] text-muted-foreground">Income</p>
             <p className={cn("text-base font-medium tabular-nums", s.income ? "text-income" : "text-faint")}>{s.income ? `+${formatPeso(s.income)}` : formatPeso(0)}</p>
             {income?.months ? (
-              <p className="text-[11px] text-faint">{income.steady ? `usually ${formatPesoWhole(income.typical)} a month` : `${formatPesoWhole(income.lean)} to ${formatPesoWhole(income.high)} a month`}</p>
+              <p className="text-[11px] text-faint">
+                {income.steady ? `usually ${formatPesoWhole(income.typical)} a month` : `${formatPesoWhole(income.lean)} to ${formatPesoWhole(income.high)} a month`}
+              </p>
             ) : (
               !s.income && <p className="text-[11px] text-faint">Log it with +amount</p>
             )}
@@ -227,7 +241,11 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, 
               />
               {patterns.busiest && <Stat label="Most spent in a day" value={formatPeso(patterns.busiest.total)} sub={shortDate(patterns.busiest.date)} />}
               {patterns.largest && (
-                <Stat label="Biggest purchase" value={formatPeso(patterns.largest.amount)} sub={`${capitalize(patterns.largest.note || CATEGORIES[patterns.largest.category])} · ${shortDate(patterns.largest.date)}`} />
+                <Stat
+                  label="Biggest purchase"
+                  value={formatPeso(patterns.largest.amount)}
+                  sub={`${capitalize(patterns.largest.note || CATEGORIES[patterns.largest.category])} · ${shortDate(patterns.largest.date)}`}
+                />
               )}
             </div>
             {(patterns.weekdayDays > 0 || patterns.weekendDays > 0) && (

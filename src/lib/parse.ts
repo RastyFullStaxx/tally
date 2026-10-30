@@ -6,7 +6,10 @@ export type Parsed = Pick<Entry, "amount" | "income" | "note" | "category">
 // Checked in this order, so "grab food" is Food before "grab" can make it Transport.
 export const KEYWORDS = (
   [
-    ["food", "food coffee kape starbucks jollibee mcdo mcdonalds kfc chowking inasal greenwich lunch dinner breakfast merienda snack snacks milktea tea bread pizza burger resto restaurant grabfood foodpanda 7-eleven 711 ministop fishball kwekkwek isaw taho siomai siopao lugaw turon"],
+    [
+      "food",
+      "food coffee kape starbucks jollibee mcdo mcdonalds kfc chowking inasal greenwich lunch dinner breakfast merienda snack snacks milktea tea bread pizza burger resto restaurant grabfood foodpanda 7-eleven 711 ministop fishball kwekkwek isaw taho siomai siopao lugaw turon",
+    ],
     ["groceries", "grocery groceries puregold savemore supermarket market palengke alfamart landers s&r rice"],
     ["transport", "grab angkas joyride jeep jeepney tricycle trike bus mrt lrt taxi fare gas fuel petron shell caltex parking toll beep p2p"],
     ["bills", "bill bills meralco electric electricity water maynilad pldt globe smart converge internet wifi load rent netflix spotify youtube icloud subscription insurance"],

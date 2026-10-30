@@ -45,8 +45,7 @@ function isEntry(x: unknown): x is Entry {
   )
 }
 
-const isGoal = (x: unknown): x is Goal =>
-  !!x && typeof x === "object" && typeof (x as Goal).name === "string" && Number.isInteger((x as Goal).amount) && (x as Goal).amount > 0
+const isGoal = (x: unknown): x is Goal => !!x && typeof x === "object" && typeof (x as Goal).name === "string" && Number.isInteger((x as Goal).amount) && (x as Goal).amount > 0
 
 const isVote = (x: unknown): x is TipVote => {
   if (!x || typeof x !== "object") return false

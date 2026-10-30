@@ -76,8 +76,32 @@ export default function App() {
 
   const working = backup.importing || updates.checking || updates.downloading
   const activity = working ? "working" : backup.succeeded ? "success" : "idle"
-  const status = backup.importing ? "Importing backup…" : updates.downloading ? "Downloading update…" : updates.checking ? (updates.ready ? "Applying update…" : "Checking updates…") : backup.succeeded ? "Backup imported." : updates.ready ? "Update ready." : ""
-  const menu = <AppMenu updates={updates} install={install} onOpen={open} onExport={() => exportBackup(data)} onExportCsv={() => exportCsv(data)} onImport={backup.pick} say={say} animateTally={animate} onToggleAnimation={toggleAnimation} />
+  const status = backup.importing
+    ? "Importing backup…"
+    : updates.downloading
+      ? "Downloading update…"
+      : updates.checking
+        ? updates.ready
+          ? "Applying update…"
+          : "Checking updates…"
+        : backup.succeeded
+          ? "Backup imported."
+          : updates.ready
+            ? "Update ready."
+            : ""
+  const menu = (
+    <AppMenu
+      updates={updates}
+      install={install}
+      onOpen={open}
+      onExport={() => exportBackup(data)}
+      onExportCsv={() => exportCsv(data)}
+      onImport={backup.pick}
+      say={say}
+      animateTally={animate}
+      onToggleAnimation={toggleAnimation}
+    />
+  )
 
   return (
     <div
@@ -118,7 +142,15 @@ export default function App() {
       </main>
       {tab === "insights" && (
         <main className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
-          <LazyInsights data={data} today={today} menu={menu} onEditBudget={() => open("budget")} onEditGoal={() => open("goal")} onVote={vote} onBill={(item, decision) => commit(withBill(data, item, decision))} />
+          <LazyInsights
+            data={data}
+            today={today}
+            menu={menu}
+            onEditBudget={() => open("budget")}
+            onEditGoal={() => open("goal")}
+            onVote={vote}
+            onBill={(item, decision) => commit(withBill(data, item, decision))}
+          />
         </main>
       )}
       <TabBar tab={tab} onTab={setTab} />

@@ -95,7 +95,8 @@ function typed(note: string, next: () => number) {
   const r = next()
   const i = Math.floor(next() * words.length)
   const w = words[i]
-  if (r < 0.1 && w.length >= 5) words[i] = w.slice(0, 3 + Math.floor(next() * 2)) // short form: "pureg", "jolli"
+  if (r < 0.1 && w.length >= 5)
+    words[i] = w.slice(0, 3 + Math.floor(next() * 2)) // short form: "pureg", "jolli"
   else if (r < 0.2 && w.length >= 5) {
     const at = 1 + Math.floor(next() * (w.length - 2))
     const kind = next()

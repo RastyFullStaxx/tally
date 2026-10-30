@@ -121,7 +121,12 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
       </header>
 
       {brief ? (
-        <button type="button" onClick={onEditBudget} aria-label={`${brief.label} ${brief.amount === null ? "" : formatPesoWhole(brief.amount)}. Edit monthly budget`} className="flex w-full items-start gap-2 pr-4 pb-2 pl-8 text-left text-xs">
+        <button
+          type="button"
+          onClick={onEditBudget}
+          aria-label={`${brief.label} ${brief.amount === null ? "" : formatPesoWhole(brief.amount)}. Edit monthly budget`}
+          className="flex w-full items-start gap-2 pr-4 pb-2 pl-8 text-left text-xs"
+        >
           <span aria-hidden className={cn("mt-1 size-1.5 shrink-0 rounded-full", DOT[brief.tone])} />
           <span className="min-w-0 flex-1">
             <span className="text-muted-foreground">{brief.label} </span>
@@ -197,7 +202,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
 
         <ul>
           {lines.map((e) => (
-            <li key={e.id} className="border-b border-rule transition-[opacity,translate] duration-300 ease-out starting:-translate-y-1.5 starting:opacity-0 motion-reduce:transition-none">
+            <li key={e.id} className="border-b border-rule transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none starting:-translate-y-1.5 starting:opacity-0">
               <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-white/[0.04]">
                 <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
                 <CategoryChip category={e.category} label={labelOf(e)} />

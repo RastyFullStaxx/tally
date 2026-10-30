@@ -41,11 +41,7 @@ test("new notes are learned from the words of your past entries", () => {
 })
 
 test("recent habits outweigh old ones", () => {
-  const es = [
-    ...Array.from({ length: 5 }, () => entry("jollibee lunch", "food", 200, 200)),
-    entry("jollibee meal", "leisure", 250, 1),
-    entry("jollibee meal", "leisure", 250, 0),
-  ]
+  const es = [...Array.from({ length: 5 }, () => entry("jollibee lunch", "food", 200, 200)), entry("jollibee meal", "leisure", 250, 1), entry("jollibee meal", "leisure", 250, 0)]
   const p = guess(es, "jollibee bucket", 250)
   assert.equal(p.category, "leisure")
   assert.equal(p.source, "learned")
@@ -55,7 +51,10 @@ test("a note logged as income is income next time, even without the plus; saving
   const paid = [entry("noemi payment", "income", 200, 1, { income: true })]
   assert.deepEqual([guess(paid, "noemi payment").category, guess(paid, "noemi payment").source], ["income", "repeat"])
   const model = trainCategoryModel(paid)
-  assert.deepEqual(parseLine("noemi payment 300", (note, amount) => predictCategory(model, note, amount).category), { amount: 30000, income: true, note: "noemi payment", category: "income" })
+  assert.deepEqual(
+    parseLine("noemi payment 300", (note, amount) => predictCategory(model, note, amount).category),
+    { amount: 30000, income: true, note: "noemi payment", category: "income" }
+  )
   assert.equal(guess(paid, "noemi").source, "default", "only the exact note, and income never trains the expense model")
   assert.equal(guess([entry("gcash", "savings", 500, 0)], "gcash").source, "default")
 })

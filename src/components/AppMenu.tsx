@@ -45,12 +45,20 @@ export function useUpdates() {
       const check = () => {
         if (!navigator.onLine || pendingCheck.current) return
         setChecking(true)
-        pendingCheck.current = r.update().then(() => "Checked for updates.", () => "Couldn't check.").finally(() => {
-          pendingCheck.current = null
-          setChecking(false)
-        })
+        pendingCheck.current = r
+          .update()
+          .then(
+            () => "Checked for updates.",
+            () => "Couldn't check."
+          )
+          .finally(() => {
+            pendingCheck.current = null
+            setChecking(false)
+          })
       }
-      const foreground = () => { if (document.visibilityState === "visible") check() }
+      const foreground = () => {
+        if (document.visibilityState === "visible") check()
+      }
       document.addEventListener("visibilitychange", foreground)
       const interval = setInterval(check, HOUR)
       cleanupRegistration.current = () => {

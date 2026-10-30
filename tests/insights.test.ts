@@ -75,7 +75,10 @@ test("habits and small extras leave out needs like the daily commute", () => {
   const es: Entry[] = []
   for (let d = 1; d <= 12; d++) es.push(entry(day("2026-10", d), 186, "grab to office", { category: "transport" }), entry(day("2026-10", d), 150, "lunch"), entry(day("2026-10", d), 120, "milktea"))
   const tips = advise(es, "2026-10", 0, "2026-10-12")
-  assert.ok(tips.some((t) => t.title === "You spent on Milktea 12 times this month"), JSON.stringify(tips))
+  assert.ok(
+    tips.some((t) => t.title === "You spent on Milktea 12 times this month"),
+    JSON.stringify(tips)
+  )
   const small = tips.find((t) => t.kind === "small-buys")
   assert.equal(small?.why, "12 extras under ₱200 came to ₱1,440, 26% of what you spent this month. Mostly Milktea (12×, ₱1,440).")
   assert.ok(!tips.some((t) => t.title.includes("Grab")), JSON.stringify(tips))
@@ -120,8 +123,14 @@ test("advise checks income against healthy limits (essentials 50%, extras 30%, s
   assert.ok(wants, JSON.stringify(tips))
   assert.match(wants.why, /^45% of your income went to food, shopping and leisure \(Shopping ₱4,000, Food ₱500\)\. A healthy limit is 30%, or ₱3,000\.$/)
   assert.equal(wants.action, "No more extras this month. In November, keep them under ₱3,000.")
-  assert.ok(tips.some((t) => t.title === "One purchase was 62% of your spending"), JSON.stringify(tips))
-  assert.ok(tips.some((t) => t.title === "Pay yourself first"), JSON.stringify(tips))
+  assert.ok(
+    tips.some((t) => t.title === "One purchase was 62% of your spending"),
+    JSON.stringify(tips)
+  )
+  assert.ok(
+    tips.some((t) => t.title === "Pay yourself first"),
+    JSON.stringify(tips)
+  )
 })
 
 test("Not helpful hides a tip, and votes reorder kinds of tips", () => {
@@ -312,9 +321,16 @@ test("income comes whenever: one month behind isn't an alarm when the last 90 da
     entry("2026-10-15", 15000, "salary", { income: true, category: "income" }),
     entry("2026-10-16", 18000, "rent", { category: "bills" }),
   ]
-  assert.equal(advise(es, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap"), undefined)
+  assert.equal(
+    advise(es, "2026-10", 0, "2026-10-20").find((t) => t.kind === "income-gap"),
+    undefined
+  )
   // Spending that really runs ahead of what comes in, over the whole window, is a warning.
-  const behind = [entry("2026-09-01", 10000, "client", { income: true, category: "income" }), entry("2026-09-05", 9000, "rent", { category: "bills" }), entry("2026-10-02", 9000, "rent", { category: "bills" })]
+  const behind = [
+    entry("2026-09-01", 10000, "client", { income: true, category: "income" }),
+    entry("2026-09-05", 9000, "rent", { category: "bills" }),
+    entry("2026-10-02", 9000, "rent", { category: "bills" }),
+  ]
   const gap = advise(behind, "2026-10", 0, "2026-10-10").find((t) => t.kind === "income-gap")
   assert.equal(gap?.tone, "warn")
   assert.equal(gap.title, "You've spent ₱8,000 more than came in")

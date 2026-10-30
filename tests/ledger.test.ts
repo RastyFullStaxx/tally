@@ -133,7 +133,10 @@ test("search finds entries by note, category name or amount, inside a filter, ne
   assert.deepEqual(notes("mystery"), [])
   // Same day: the line logged later comes first, like on Today.
   const sameDay = [entry("2026-10-07", 50, "taho"), entry("2026-10-07", 60, "taho")]
-  assert.deepEqual(searchEntries(sameDay, "taho").map((e) => e.amount), [6000, 5000])
+  assert.deepEqual(
+    searchEntries(sameDay, "taho").map((e) => e.amount),
+    [6000, 5000]
+  )
 })
 
 test("totals split spending, income and net savings", () => {
@@ -158,7 +161,10 @@ test("undo puts a deleted entry back with the same id, in the same place, and ne
   assert.deepEqual(restoreEntry(after, removed!), data)
   // A line added while the notice was up stays, and the entry still goes back where it was.
   const added = { ...after, entries: [...after.entries, entry("2026-10-03", 50, "taho")] }
-  assert.deepEqual(restoreEntry(added, removed!).entries.map((e) => e.note), ["coffee", "grab", "7-eleven", "taho"])
+  assert.deepEqual(
+    restoreEntry(added, removed!).entries.map((e) => e.note),
+    ["coffee", "grab", "7-eleven", "taho"]
+  )
   // Already back (an import brought it in): nothing duplicates.
   assert.equal(restoreEntry(data, removed!), data)
   // Lines deleted after it can leave its old place past the end; it lands last.

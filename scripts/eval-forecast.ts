@@ -10,17 +10,80 @@ import { daysIn, monthOf, shiftDay, shiftMonth, toDate } from "../src/lib/dates.
 type Persona = { name: string; weekday: number; saturday: number; sunday: number; bills: [string, number, number][]; jump?: { from: number; by: number }; weekly?: [string, number]; gaps?: boolean }
 
 const PERSONAS: Persona[] = [
-  { name: "commuter", weekday: 450, saturday: 1100, sunday: 800, bills: [["rent", 1, 8000], ["meralco", 10, 2300], ["converge", 20, 1500]] },
-  { name: "student", weekday: 260, saturday: 420, sunday: 300, bills: [["load", 5, 300], ["spotify", 18, 149]] },
+  {
+    name: "commuter",
+    weekday: 450,
+    saturday: 1100,
+    sunday: 800,
+    bills: [
+      ["rent", 1, 8000],
+      ["meralco", 10, 2300],
+      ["converge", 20, 1500],
+    ],
+  },
+  {
+    name: "student",
+    weekday: 260,
+    saturday: 420,
+    sunday: 300,
+    bills: [
+      ["load", 5, 300],
+      ["spotify", 18, 149],
+    ],
+  },
   // A big grocery run every Saturday: a regular big day, which must still be projected.
-  { name: "household", weekday: 900, saturday: 1600, sunday: 1400, bills: [["rent", 2, 12000], ["meralco", 12, 4200], ["maynilad", 15, 900], ["pldt", 25, 1700]], weekly: ["puregold", 3500] },
+  {
+    name: "household",
+    weekday: 900,
+    saturday: 1600,
+    sunday: 1400,
+    bills: [
+      ["rent", 2, 12000],
+      ["meralco", 12, 4200],
+      ["maynilad", 15, 900],
+      ["pldt", 25, 1700],
+    ],
+    weekly: ["puregold", 3500],
+  },
   // A real change in habits: from the sixth month on, everyday spending is half again as much, and stays there.
-  { name: "new habit", weekday: 450, saturday: 900, sunday: 700, bills: [["rent", 1, 8000], ["globe", 8, 1300]], jump: { from: 5, by: 1.5 } },
+  {
+    name: "new habit",
+    weekday: 450,
+    saturday: 900,
+    sunday: 700,
+    bills: [
+      ["rent", 1, 8000],
+      ["globe", 8, 1300],
+    ],
+    jump: { from: 5, by: 1.5 },
+  },
   // Forgets to log: about 1 day in 5, plus a whole week now and then. Unlogged days aren't days without spending.
-  { name: "gappy", weekday: 400, saturday: 800, sunday: 600, bills: [["rent", 1, 7000], ["meralco", 11, 1800]], gaps: true },
+  {
+    name: "gappy",
+    weekday: 400,
+    saturday: 800,
+    sunday: 600,
+    bills: [
+      ["rent", 1, 7000],
+      ["meralco", 11, 1800],
+    ],
+    gaps: true,
+  },
 ]
-const EVERYDAY: [string, CategoryId][] = [["lunch", "food"], ["grab", "transport"], ["puregold", "groceries"], ["snacks", "food"], ["jeep", "transport"], ["movie", "leisure"]]
-const BIG: [string, CategoryId][] = [["shopee haul", "shopping"], ["new shoes", "shopping"], ["birthday dinner", "leisure"], ["dentist", "health"]]
+const EVERYDAY: [string, CategoryId][] = [
+  ["lunch", "food"],
+  ["grab", "transport"],
+  ["puregold", "groceries"],
+  ["snacks", "food"],
+  ["jeep", "transport"],
+  ["movie", "leisure"],
+]
+const BIG: [string, CategoryId][] = [
+  ["shopee haul", "shopping"],
+  ["new shoes", "shopping"],
+  ["birthday dinner", "leisure"],
+  ["dentist", "health"],
+]
 const START = "2026-03-01"
 const MONTHS = 8 // March to October; the first two only build history
 
@@ -126,7 +189,9 @@ export function report(forecasters: Record<string, Forecaster>) {
   for (const [name, f] of Object.entries(forecasters)) {
     const r = backtest(f)
     const signed = (x: number) => `${x >= 0 ? "+" : ""}${pct(x)}`
-    console.log(`${name.padEnd(15)} from the 7th: off by ${pct(r.fromSeventh)} (bias ${signed(r.bias)}) · ${r.byStretch.map(([l, v]) => `${l} ${pct(v)}`).join(", ")} · month a habit changes ${pct(r.change)} (bias ${signed(r.changeBias)})`)
+    console.log(
+      `${name.padEnd(15)} from the 7th: off by ${pct(r.fromSeventh)} (bias ${signed(r.bias)}) · ${r.byStretch.map(([l, v]) => `${l} ${pct(v)}`).join(", ")} · month a habit changes ${pct(r.change)} (bias ${signed(r.changeBias)})`
+    )
   }
 }
 

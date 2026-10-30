@@ -9,7 +9,7 @@ export function NoticeBar({ notice, onFix, onUndo }: { notice: Notice | null; on
   return (
     <div role="status" className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+3.5rem)] z-50 mx-auto max-w-md">
       {notice && (
-        <div className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-raised py-1 pl-3 text-sm shadow-lg animate-in duration-200 fade-in-0 slide-in-from-bottom-1 motion-reduce:animate-none">
+        <div className="flex min-h-11 animate-in items-center gap-2 rounded-md border border-border bg-raised py-1 pl-3 text-sm shadow-lg duration-200 fade-in-0 slide-in-from-bottom-1 motion-reduce:animate-none">
           <span className={cn("min-w-0 flex-1 py-1", notice.undo ? "truncate" : !notice.fix && "pr-3")}>{notice.text}</span>
           {notice.fix && (
             <button type="button" onClick={() => onFix(notice.fix!)} className={ACTION}>

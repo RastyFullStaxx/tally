@@ -51,7 +51,6 @@ function budgetRanOut(s: Summary, month: string, budget: number): string | null 
   return i < 0 ? null : `${month}-${pad(i + 1)}`
 }
 
-
 export type Usual = { spent: number; income: number; essentials: number; months: number }
 
 /**
@@ -343,7 +342,15 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
   // Income. Healthy limits: extras 30% of what comes in, essentials 50%, savings 20%. Income comes whenever, so the
   // ratios use the last 90 days once there's 4 weeks of history; before that, or reviewing a past month, that month.
   if (!entries.some(isIncome)) {
-    add("income-missing", "", "tip", 2, "Add your income", "Then Tally can tell you whether you're saving money or losing it.", "Type it with a plus sign, like +25000 salary, whenever money comes in.")
+    add(
+      "income-missing",
+      "",
+      "tip",
+      2,
+      "Add your income",
+      "Then Tally can tell you whether you're saving money or losing it.",
+      "Type it with a plus sign, like +25000 salary, whenever money comes in."
+    )
   } else {
     const w: Window = roll ?? { days: 0, income: s.income, spent: s.spent, saved: s.saved, extras: p.wants, essentials: p.needs }
     // Monthly limits come from your leanest month once Tally knows it, else the window's pace as a 30-day month.
@@ -427,7 +434,9 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
           short,
           w.saved > 0 ? `You're saving ${pct(rate)} ${of}` : roll ? "Nothing saved lately" : current ? "Nothing saved yet this month" : `Nothing saved in ${name}`,
           `20% of the ${pesos(w.income)} that came in ${roll ? `over the last ${roll.days} days` : when} would be ${pesos(w.income * 0.2)}. You've put aside ${pesos(Math.max(0, w.saved))}.`,
-          inc ? `Each time money comes in, put 20% aside first: ${pesos((fresh ?? inc.last).amount * 0.2)} from ${fresh ? `the ${pesos(fresh.amount)} on ${shortDate(fresh.date)}` : `your last ${pesos(inc.last.amount)}`}.` : "Each time money comes in, put 20% aside first."
+          inc
+            ? `Each time money comes in, put 20% aside first: ${pesos((fresh ?? inc.last).amount * 0.2)} from ${fresh ? `the ${pesos(fresh.amount)} on ${shortDate(fresh.date)}` : `your last ${pesos(inc.last.amount)}`}.`
+            : "Each time money comes in, put 20% aside first."
         )
       }
     }
@@ -761,9 +770,7 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
       )
 
     // A payday splurge: the 3 days after money came in, against a usual day. Needs 3 weeks of history.
-    const pay = entries
-      .filter((e) => isIncome(e) && e.date <= shiftDay(today, -3) && e.date >= shiftDay(today, -35))
-      .sort((x, y) => y.date.localeCompare(x.date))[0]
+    const pay = entries.filter((e) => isIncome(e) && e.date <= shiftDay(today, -3) && e.date >= shiftDay(today, -35)).sort((x, y) => y.date.localeCompare(x.date))[0]
     if (pay && firstDate(entries, today) <= shiftDay(today, -21)) {
       const extrasIn = (from: string, to: string) => sum(entries.filter((e) => isExpense(e) && WANTS.includes(e.category) && e.date >= from && e.date <= to))
       const after = extrasIn(pay.date, shiftDay(pay.date, 2))

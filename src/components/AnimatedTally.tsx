@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 
 import { Mascot } from "@/components/Mascot"
-import {
-  TALLY_CLIPS,
-  tallyMotion,
-  type TallyActivity,
-} from "@/lib/tally-motion"
+import { TALLY_CLIPS, tallyMotion, type TallyActivity } from "@/lib/tally-motion"
 
 function subscribeMotion(change: () => void) {
   const media = matchMedia("(prefers-reduced-motion: reduce)")
@@ -16,25 +12,10 @@ function subscribeMotion(change: () => void) {
     document.removeEventListener("visibilitychange", change)
   }
 }
-const motionAvailable = () =>
-  !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches
+const motionAvailable = () => !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches
 
-export function AnimatedTally({
-  activity,
-  statusText,
-  paused,
-  enabled,
-}: {
-  activity: TallyActivity
-  statusText: string
-  paused: boolean
-  enabled: boolean
-}) {
-  const available = useSyncExternalStore(
-    subscribeMotion,
-    motionAvailable,
-    () => false
-  )
+export function AnimatedTally({ activity, statusText, paused, enabled }: { activity: TallyActivity; statusText: string; paused: boolean; enabled: boolean }) {
+  const available = useSyncExternalStore(subscribeMotion, motionAvailable, () => false)
   const allowed = enabled && available
   const [reaction, setReaction] = useState<"idle" | "wave" | null>(null)
   const [workReady, setWorkReady] = useState(false)
@@ -62,13 +43,7 @@ export function AnimatedTally({
   )
 
   const motion = tallyMotion(activity, reaction, allowed, paused, workReady)
-  const clip =
-    motion ??
-    (activity === "working"
-      ? "working"
-      : activity === "success"
-        ? "success"
-        : "idle")
+  const clip = motion ?? (activity === "working" ? "working" : activity === "success" ? "success" : "idle")
   const config = TALLY_CLIPS[clip]
   const playing = motion !== null && loaded === clip && !failed
   const greet = (keyboard: boolean) => {
@@ -84,11 +59,7 @@ export function AnimatedTally({
   }
 
   return (
-    <div
-      className="flex min-h-14 items-center gap-2"
-      data-tally-state={activity}
-      data-tally-motion={playing ? clip : "still"}
-    >
+    <div className="flex min-h-14 items-center gap-2" data-tally-state={activity} data-tally-motion={playing ? clip : "still"}>
       <button
         type="button"
         aria-label="Wave to Tally"
@@ -98,18 +69,7 @@ export function AnimatedTally({
       >
         {(failed || loaded !== clip || (greeting && !playing)) && (
           <div className="absolute inset-0">
-            <Mascot
-              pose={
-                activity === "working"
-                  ? "waiting"
-                  : activity === "success"
-                    ? "celebration"
-                    : greeting
-                      ? "welcome"
-                      : "ready"
-              }
-              size={56}
-            />
+            <Mascot pose={activity === "working" ? "waiting" : activity === "success" ? "celebration" : greeting ? "welcome" : "ready"} size={56} />
           </div>
         )}
         {!failed && (
@@ -128,9 +88,7 @@ export function AnimatedTally({
               width: 56 * config.frames,
               height: 56,
               opacity: loaded === clip && !(greeting && !playing) ? 1 : 0,
-              animation: playing
-                ? `tally-frames ${config.duration}ms steps(${config.frames}) ${clip === "working" ? "infinite" : "1"}`
-                : "none",
+              animation: playing ? `tally-frames ${config.duration}ms steps(${config.frames}) ${clip === "working" ? "infinite" : "1"}` : "none",
             }}
           />
         )}
