@@ -24,7 +24,15 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **ADR 0003, accounts and sync, prepared and off** (`rasty/tally-accounts-seam`, started 2026-10-30 15:10 UTC)
+  - [ ] `docs/adr/0003-accounts-and-sync.md`: guarantees any sync must keep, the merge rules (per-entry last
+        write wins, tombstones), Supabase / Firebase / Auth.js / Google Drive app folder, recommendation,
+        owner decisions, future env vars, sources
+  - [ ] `src/lib/sync.ts`: `AuthProvider`, `SyncAdapter`, local no-op defaults; `src/lib/flags.ts`:
+        `accountsEnabled` from `VITE_TALLY_ACCOUNTS`, off unless `on`; `.env.example`
+  - [ ] ··· → Account sheet, only with the flag on; says sign-in isn't connected while the provider is local
+  - [ ] `tests/sync.test.ts` in `npm test`; build with the flag off has no Account item; with it on, the sheet
+        renders; gate; merge
 
 ## Next up (ranked)
 
