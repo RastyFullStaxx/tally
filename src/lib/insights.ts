@@ -167,7 +167,7 @@ export type Recurring = { item: string; category: CategoryId; amount: number; da
  * Bills that come once a month: the same item logged exactly once a month in at least 2 of the last 3 months,
  * at a similar amount (within 40%) and on a similar day (within 7). Daily lunches drop out on their own.
  */
-export function recurringBills(entries: Entry[], today: string): Recurring[] {
+export function recurringBills(entries: Entry[], today: string, notBills: readonly string[] = []): Recurring[] {
   const month = monthOf(today)
   const window = [1, 2, 3].map((i) => shiftMonth(month, -i))
   const byItem = new Map<string, Entry[]>()
@@ -178,6 +178,7 @@ export function recurringBills(entries: Entry[], today: string): Recurring[] {
   }
   const bills: Recurring[] = []
   for (const [item, list] of byItem) {
+    if (notBills.includes(item)) continue // you said it isn't a bill
     const past = list.filter((e) => monthOf(e.date) !== month)
     const perMonth = new Map<string, number>()
     for (const e of past) perMonth.set(monthOf(e.date), (perMonth.get(monthOf(e.date)) ?? 0) + 1)
@@ -200,8 +201,8 @@ const unpaidThisMonth = (bills: Recurring[], today: string) => bills.filter((b) 
 export type Unusual = { category: CategoryId; thisWeek: number; usual: number; weeks: number; direction: "high" | "low" }
 
 /** The last 7 days of each category against your usual week: the middle of up to 8 earlier weeks (needs 4). */
-export function unusualWeeks(entries: Entry[], today: string): Unusual[] {
-  const recurring = new Set(recurringBills(entries, today).map((b) => b.item))
+export function unusualWeeks(entries: Entry[], today: string, notBills: readonly string[] = []): Unusual[] {
+  const recurring = new Set(recurringBills(entries, today, notBills).map((b) => b.item))
   const counted = entries.filter((e) => isExpense(e) && e.category !== "bills" && !recurring.has(itemOf(e)))
   const first = firstDate(entries, today)
   const weekEnds = [1, 2, 3, 4, 5, 6, 7, 8].map((k) => shiftDay(today, -7 * k)).filter((end) => shiftDay(end, -6) >= first)
@@ -265,10 +266,10 @@ const LEAN_DAYS = 14 // how many days' worth of your last 4 weeks the rate leans
  *   splurge on the 1st doesn't set the pace. Only when at least 14 of those 28 days have entries: days you
  *   didn't log aren't days you spent nothing.
  */
-export function forecastMonth(entries: Entry[], month: string, today: string): Forecast {
+export function forecastMonth(entries: Entry[], month: string, today: string, notBills: readonly string[] = []): Forecast {
   const s = monthSummary(entries, month, 0, today)
   if (month !== monthOf(today)) return { total: s.spent, upcoming: 0, dailyRate: 0, fromHistory: false }
-  const bills = recurringBills(entries, today)
+  const bills = recurringBills(entries, today, notBills)
   const recurring = new Set(bills.map((b) => b.item))
   const upcoming = unpaidThisMonth(bills, today).reduce((n, b) => n + b.amount, 0)
   const start = shiftDay(today, -28)
@@ -300,11 +301,11 @@ export function forecastMonth(entries: Entry[], month: string, today: string): F
 export type Safe = { today: number; perDay: number; upcoming: number; spentToday: number; daysLeft: number }
 
 /** What you can spend today and stay within budget, after the recurring bills still to come this month. */
-export function safeToSpend(entries: Entry[], budget: number, today: string): Safe | null {
+export function safeToSpend(entries: Entry[], budget: number, today: string, notBills: readonly string[] = []): Safe | null {
   if (!budget) return null
   const s = monthSummary(entries, monthOf(today), budget, today)
   const spentToday = sum(entries.filter((e) => isExpense(e) && e.date === today))
-  const upcoming = unpaidThisMonth(recurringBills(entries, today), today).reduce((n, b) => n + b.amount, 0)
+  const upcoming = unpaidThisMonth(recurringBills(entries, today, notBills), today).reduce((n, b) => n + b.amount, 0)
   const perDay = Math.floor((budget - (s.spent - spentToday) - upcoming) / s.daysLeft)
   return { today: perDay - spentToday, perDay, upcoming, spentToday, daysLeft: s.daysLeft }
 }
@@ -528,7 +529,7 @@ export function cushion(entries: Entry[], today: string): { months: number; mont
  * first, then the plan, then tips by how many pesos they're worth, scaled by how helpful you've found that
  * kind of tip. A tip you marked Not helpful stays hidden.
  */
-export function advise(entries: Entry[], month: string, budget: number, today: string, extra: { goal?: Goal; votes?: TipVote[] } = {}): Tip[] {
+export function advise(entries: Entry[], month: string, budget: number, today: string, extra: { goal?: Goal; votes?: TipVote[]; notBills?: readonly string[] } = {}): Tip[] {
   const s = monthSummary(entries, month, budget, today)
   if (!s.day) return []
   const p = spendingPatterns(entries, month, today)
@@ -560,8 +561,9 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
   const dayToDay = s.spent - bills
   const split = (perDay: number) =>
     dayToDay > 0 ? ` Roughly ${pesos((perDay * (p.needs - bills)) / dayToDay)} for things you need and ${pesos((perDay * (p.wants + p.other)) / dayToDay)} for everything else.` : ""
-  const forecast = forecastMonth(entries, month, today)
-  const safe = current ? safeToSpend(entries, budget, today) : null
+  const notBills = extra.notBills ?? []
+  const forecast = forecastMonth(entries, month, today, notBills)
+  const safe = current ? safeToSpend(entries, budget, today, notBills) : null
   const comingUp = forecast.upcoming ? `, and ${pesos(forecast.upcoming)} in bills is still to come` : ""
 
   // What the rest of the month needs: essentials at your usual daily cost, plus the bills still due.
@@ -732,7 +734,7 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
   // Bills you usually pay around now that aren't logged yet.
   if (current) {
     const soon = shiftDay(today, 7)
-    for (const b of recurringBills(entries, today)) {
+    for (const b of recurringBills(entries, today, notBills)) {
       if (b.paid || monthOf(b.due) !== month || b.due > soon) continue
       const late = b.due < today
       add(
@@ -1038,7 +1040,7 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
 
   // A week that's unusual for you. A category already growing on the month gets that one tip, not two.
   if (current)
-    for (const u of unusualWeeks(entries, today)) {
+    for (const u of unusualWeeks(entries, today, notBills)) {
       if (u.direction === "high" && u.category !== grown?.category && !mentioned.has(u.category)) {
         const week = entries.filter((e) => isExpense(e) && e.category === u.category && e.date > shiftDay(today, -7) && e.date <= today)
         mentioned.add(u.category)
@@ -1169,7 +1171,7 @@ export function advise(entries: Entry[], month: string, budget: number, today: s
 
   if (current) {
     // Subscriptions among the bills that repeat: small each, big over a year.
-    const subs = recurringBills(entries, today).filter((b) => SUBSCRIPTIONS.has(b.item))
+    const subs = recurringBills(entries, today, notBills).filter((b) => SUBSCRIPTIONS.has(b.item))
     const subsTotal = subs.reduce((n, b) => n + b.amount, 0)
     if (subs.length >= 2 || subsTotal >= 50000)
       add(
@@ -1251,7 +1253,7 @@ function usualDay(entries: Entry[], date: string): number | null {
  * start, spread over the days left (bills still due set aside first, for today). Today gets a plan; a past day gets
  * a verdict and what it did to the rest of the month. Null without a budget.
  */
-export function dayBrief(entries: Entry[], budget: number, date: string, today: string): DayBrief | null {
+export function dayBrief(entries: Entry[], budget: number, date: string, today: string, notBills: readonly string[] = []): DayBrief | null {
   if (!budget || date > today) return null
   const month = monthOf(date)
   const days = daysIn(month)
@@ -1260,7 +1262,7 @@ export function dayBrief(entries: Entry[], budget: number, date: string, today: 
   const day = inMonth.filter((e) => e.date === date)
   const spent = sum(day)
   const isToday = date === today
-  const upcoming = isToday ? unpaidThisMonth(recurringBills(entries, today), today).reduce((n, b) => n + b.amount, 0) : 0
+  const upcoming = isToday ? unpaidThisMonth(recurringBills(entries, today, notBills), today).reduce((n, b) => n + b.amount, 0) : 0
   const room = budget - sum(inMonth.filter((e) => e.date < date)) - upcoming
   const perDay = Math.floor(room / (days - d + 1))
   const after = days - d

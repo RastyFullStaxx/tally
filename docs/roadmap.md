@@ -8,6 +8,9 @@ When working in an interactive session (not the hourly routine), feature branche
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Confirm detected bills. Insights asks once per detected bill (Yes / Not a bill); answers live in
+  `tally:v1` as an optional `bills` map (owner approved the format change), travel in backups, and "not a
+  bill" removes the item from the forecast, safe-to-spend, the day's line and tips. Nothing is ever added.
 - 2026-10-30: A steadier month-end forecast. A one-off big buy counts once instead of being projected, and a
   young month leans on the last 4 weeks when most of them were logged. On `npm run eval:forecast` (five
   synthetic people, six months each) the average miss from the 7th falls from 13.8% to 11.1%, the bias from
@@ -46,10 +49,7 @@ When working in an interactive session (not the hourly routine), feature branche
 
 ## Next up (ranked)
 
-1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
-   Detected bills are never added on their own. (Storing confirmations changes the data format, so
-   see Owner decisions.)
-2. **Bundle, round two: measured 2026-10-30, parked.** Lighthouse (simulated slow 4G and a 4× slower CPU, first
+1. **Bundle, round two: measured 2026-10-30, parked.** Lighthouse (simulated slow 4G and a 4× slower CPU, first
    visit): performance 82–86, accessibility 100, best practices 100; total blocking time 40–50 ms; the
    largest paint (4.1–4.7 s) is the cat on an empty Today, waiting on the 154 KB (gzipped) entry script.
    - Preloading the cat image didn't help (4.4 s average without, 4.6 s with): the script is the critical
@@ -69,5 +69,4 @@ When working in an interactive session (not the hourly routine), feature branche
   PKCE redirect and Google Identity Services). Then pick the provider (recommended: Supabase, encrypted,
   over plain `fetch`), say yes or no to the format change (tombstones and settings stamps in `tally:v1`),
   and choose between a passphrase-encrypted copy and plain JSON.
-- Other product decisions: Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
-  will be asked here before either is built.
+- Other product decisions: per-category budgets would need new fields in `tally:v1`; ask here first.

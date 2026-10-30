@@ -4,7 +4,7 @@ process.env.TZ = "Asia/Manila"
 
 import assert from "node:assert/strict"
 import test from "node:test"
-import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, searchEntries, shiftDay, shiftMonth, toBackup, toCsv, totalsOf, type Entry, type TipVote } from "../src/lib/ledger.ts"
+import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, searchEntries, shiftDay, shiftMonth, toBackup, toCsv, totalsOf, notBills, type Entry, type TipVote } from "../src/lib/ledger.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({
@@ -215,4 +215,14 @@ test("a backup carries the savings goal and tip votes, and drops malformed ones"
   const messy = mergeBackup({ entries: [], budget: 0 }, { entries: [], goal: { name: 5 }, votes: [vote, { id: "x", vote: 2 }] })
   assert.equal(messy.data.goal, undefined)
   assert.deepEqual(messy.data.votes, [vote])
+})
+
+test("bill answers travel in backups, merge by item with the phone's answer winning, and junk is dropped", () => {
+  const phone = { entries: [], budget: 0, bills: { meralco: "bill" as const } }
+  const file = { entries: [], bills: { meralco: "not", shopee: "not", rent: "maybe" } }
+  const merged = mergeBackup(phone, file).data
+  assert.deepEqual(merged.bills, { meralco: "bill", shopee: "not" })
+  assert.deepEqual(notBills(merged), ["shopee"])
+  assert.deepEqual(mergeBackup({ entries: [], budget: 0 }, JSON.parse(toBackup(merged))).data.bills, merged.bills)
+  assert.equal("bills" in mergeBackup({ entries: [], budget: 0 }, { entries: [] }).data, false)
 })

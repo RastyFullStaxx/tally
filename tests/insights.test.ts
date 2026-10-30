@@ -526,3 +526,11 @@ test("an amount far from what the same thing usually costs is flagged, and ordin
   const grab = [180, 190, 170, 200, 950].map((p, i) => entry(day("2026-10", i + 1), p, "grab", { category: "transport" }))
   assert.equal(unusualAmount(grab, entry("2026-10-20", 900, "grab", { category: "transport" })), null)
 })
+
+test("an item you said isn't a bill stops counting as one everywhere", () => {
+  const es = billsAndLunches()
+  assert.ok(recurringBills(es, "2026-10-05").some((b) => b.item === "meralco"))
+  assert.ok(!recurringBills(es, "2026-10-05", ["meralco"]).some((b) => b.item === "meralco"))
+  assert.equal(forecastMonth(es, "2026-10", "2026-10-05", ["meralco"]).upcoming, 0)
+  assert.equal(safeToSpend(es, 2000000, "2026-10-05", ["meralco"])?.upcoming, 0)
+})
