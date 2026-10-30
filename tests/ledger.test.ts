@@ -4,7 +4,7 @@ process.env.TZ = "Asia/Manila"
 
 import assert from "node:assert/strict"
 import test from "node:test"
-import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, searchEntries, shiftDay, shiftMonth, toBackup, totalsOf, type Entry, type TipVote } from "../src/lib/ledger.ts"
+import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, searchEntries, shiftDay, shiftMonth, toBackup, toCsv, totalsOf, type Entry, type TipVote } from "../src/lib/ledger.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({
@@ -159,6 +159,35 @@ test("undo puts a deleted entry back with the same id, in the same place, and ne
   // Lines deleted after it can leave its old place past the end; it lands last.
   assert.deepEqual(restoreEntry({ ...after, entries: [] }, removed!).entries, [es[1]])
   assert.deepEqual(removeEntry(data, "missing"), { data, removed: null })
+})
+
+test("CSV export lists every entry oldest first, with amounts a spreadsheet can add up", () => {
+  const es = [
+    entry("2026-10-02", 1250.5, "grab, then lunch", { category: "transport" }),
+    entry("2026-10-01", 120, "coffee"),
+    entry("2026-10-05", 25000, "salary", { income: true, category: "income" }),
+    entry("2026-10-06", 2000, "laptop", { category: "savings" }),
+    entry("2026-10-07", 500, "", { category: "savings", income: true }),
+    entry("2026-10-08", 99, 'piña "special"'),
+    entry("2026-10-09", 1, "=HYPERLINK(1)"),
+    entry("2026-10-09", 2, "-50 refund"),
+  ]
+  const csv = toCsv(es)
+  assert.ok(csv.startsWith("\uFEFFDate,Type,Category,Note,Amount\r\n"), "a BOM, then the header")
+  assert.ok(csv.endsWith("\r\n"))
+  assert.deepEqual(csv.slice(1).trimEnd().split("\r\n").slice(1), [
+    "2026-10-01,Expense,Food,coffee,120.00",
+    '2026-10-02,Expense,Transport,"grab, then lunch",1250.50',
+    "2026-10-05,Income,Income,salary,25000.00",
+    "2026-10-06,To savings,Savings,laptop,2000.00",
+    "2026-10-07,From savings,Savings,,500.00",
+    '2026-10-08,Expense,Food,"piña ""special""",99.00',
+    "2026-10-09,Expense,Food,'=HYPERLINK(1),1.00",
+    "2026-10-09,Expense,Food,'-50 refund,2.00",
+  ])
+  assert.equal(toCsv([]), "\uFEFFDate,Type,Category,Note,Amount\r\n")
+  // A line break in a note stays inside its quoted field.
+  assert.ok(toCsv([entry("2026-10-10", 5, "two\nlines")]).includes('"two\nlines"'))
 })
 
 test("a backup restores to the same data and never duplicates (the restore drill)", () => {

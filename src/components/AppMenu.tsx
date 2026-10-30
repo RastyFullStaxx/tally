@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRegisterSW } from "virtual:pwa-register/react"
 
-import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TargetIcon, UploadIcon, WalletIcon } from "@/components/icons"
+import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TableIcon, TargetIcon, UploadIcon, WalletIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -140,6 +140,7 @@ type Props = {
   install: ReturnType<typeof useInstall>
   onOpen: (sheet: Sheet) => void
   onExport: () => void
+  onExportCsv: () => void
   onImport: () => void
   say: (text: string) => void
   animateTally: boolean
@@ -147,7 +148,7 @@ type Props = {
 }
 
 /** The ··· menu in both screens' headers, with the Update pill beside it when a new version is waiting. */
-export function AppMenu({ updates, install, onOpen, onExport, onImport, say, animateTally, onToggleAnimation }: Props) {
+export function AppMenu({ updates, install, onOpen, onExport, onExportCsv, onImport, say, animateTally, onToggleAnimation }: Props) {
   return (
     <div className="flex items-center gap-1">
       {updates.ready && (
@@ -211,6 +212,10 @@ export function AppMenu({ updates, install, onOpen, onExport, onImport, say, ani
           <DropdownMenuItem onSelect={onImport}>
             <UploadIcon />
             Import backup
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onExportCsv}>
+            <TableIcon />
+            Export for spreadsheets
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
