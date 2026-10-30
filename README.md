@@ -4,7 +4,8 @@ An offline budget notebook for iPhone. You type a line like `jollibee 245` and i
 shows your budget pace, income against spending, where the money went, and what to do about it.
 Everything stays on the phone. The decisions behind it are in
 [docs/adr/0001](docs/adr/0001-offline-pwa-on-device-storage.md) (offline, on-device storage) and
-[docs/adr/0002](docs/adr/0002-on-device-learning.md) (what learns, and where a future model plugs in).
+[docs/adr/0002](docs/adr/0002-on-device-learning.md) (what learns, and where a future model plugs in). Accounts and
+sync are prepared but off: [docs/adr/0003](docs/adr/0003-accounts-and-sync.md).
 
 ## Typing entries
 
@@ -84,6 +85,10 @@ npm run icons      # regenerate src/components/icons.tsx (MingCute icons, fetche
 npm run build      # type-check, then build to dist/ with the offline service worker
 npm run preview    # serve dist/ the way the phone will get it
 ```
+
+Accounts and sync are prepared but switched off ([ADR 0003](docs/adr/0003-accounts-and-sync.md)). To see the
+unconnected Account screen while developing, run `VITE_TALLY_ACCOUNTS=on npm run dev`. `.env.example` lists
+the switches.
 
 To add an icon, put its MingCute name in `scripts/icons.mjs` and run `npm run icons`.
 

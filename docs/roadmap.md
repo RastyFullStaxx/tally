@@ -5,6 +5,10 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Accounts and sync, prepared and off. ADR 0003 sets what any sync must keep (the phone stays the
+  source of truth, the origin never changes, per-entry last write wins, tombstones for deletes, an encrypted
+  copy) and compares Supabase, Firebase, Auth.js and a Google Drive app folder. `AuthProvider` and
+  `SyncAdapter` with local no-op defaults; ··· → Account only when built with `VITE_TALLY_ACCOUNTS=on`.
 - 2026-10-30: Export for spreadsheets (··· menu). Every entry as a CSV, oldest first: Date, Type, Category,
   Note and Amount as a plain number. UTF-8 with a BOM so Excel shows ₱ and ñ; notes that start like a
   formula are kept as text.
@@ -28,22 +32,24 @@ production and only the owner merges into it.
 
 ## Next up (ranked)
 
-1. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
-   backend; data ownership; merging with `tally:v1`; why the origin never changes. Then an
-   `AuthProvider`/`SyncAdapter` seam with a local no-op default and a flagged-off sign-in screen.
-2. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
+1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-3. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
+2. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
    real-shaped entries, and compare a kNN over merchant text before changing anything.
-4. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
-5. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
+3. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
+4. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
 ## Owner decisions
 
 - **Merged branches to delete on GitHub:** `rasty/tally-undo-delete`, `rasty/tally-search`,
-  `rasty/tally-narrow-header` and `rasty/tally-csv-export`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
+  `rasty/tally-narrow-header`, `rasty/tally-csv-export` and
+  `rasty/tally-accounts-seam`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
   branch deletions, so they couldn't be removed from here.
-- No product decisions waiting yet. Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
+- **Accounts and sync (ADR 0003).** First, try Google sign-in in the installed app on the iPhone (Supabase's
+  PKCE redirect and Google Identity Services). Then pick the provider (recommended: Supabase, encrypted,
+  over plain `fetch`), say yes or no to the format change (tombstones and settings stamps in `tally:v1`),
+  and choose between a passphrase-encrypted copy and plain JSON.
+- Other product decisions: Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
   will be asked here before either is built.

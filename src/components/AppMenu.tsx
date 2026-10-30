@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import { useRegisterSW } from "virtual:pwa-register/react"
 
-import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TableIcon, TargetIcon, UploadIcon, WalletIcon } from "@/components/icons"
+import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TableIcon, TargetIcon, UploadIcon, UserIcon, WalletIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { accountsEnabled } from "@/lib/flags"
 
-export type Sheet = "help" | "budget" | "goal" | "install" | "guide"
+export type Sheet = "help" | "budget" | "goal" | "install" | "guide" | "account"
 
 const HOUR = 60 * 60 * 1000
 
@@ -200,6 +201,13 @@ export function AppMenu({ updates, install, onOpen, onExport, onExportCsv, onImp
             <QuestionIcon />
             Which category?
           </DropdownMenuItem>
+          {/* Off unless the build sets VITE_TALLY_ACCOUNTS=on (ADR 0003). */}
+          {accountsEnabled && (
+            <DropdownMenuItem onSelect={() => onOpen("account")}>
+              <UserIcon />
+              Account
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuCheckboxItem checked={animateTally} onCheckedChange={onToggleAnimation}>
             Animate Tally
