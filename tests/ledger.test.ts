@@ -4,7 +4,7 @@ process.env.TZ = "Asia/Manila"
 
 import assert from "node:assert/strict"
 import test from "node:test"
-import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, shiftDay, shiftMonth, toBackup, type Entry, type TipVote } from "../src/lib/ledger.ts"
+import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, searchEntries, shiftDay, shiftMonth, toBackup, totalsOf, type Entry, type TipVote } from "../src/lib/ledger.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({
@@ -100,6 +100,47 @@ test("monthSummary adds up a month, paces it, and keeps savings out of spending 
     ["bills", "food", "transport"]
   )
   assert.equal(monthSummary(es, "2026-09", 0, "2026-10-10").daysLeft, 0)
+})
+
+test("search finds entries by note, category name or amount, inside a filter, newest first", () => {
+  const es = [
+    entry("2026-09-12", 245, "Jollibee Ayala"),
+    entry("2026-10-01", 186, "grab to office", { category: "transport" }),
+    entry("2026-10-01", 120, "coffee"),
+    entry("2026-10-03", 1250, "piña shake and cake"),
+    entry("2026-10-05", 245, "grab home", { category: "transport" }),
+    entry("2026-10-05", 25000, "salary", { income: true, category: "income" }),
+    entry("2026-10-06", 2000, "laptop", { category: "savings" }),
+  ]
+  const notes = (query: string, filter?: Parameters<typeof searchEntries>[2]) => searchEntries(es, query, filter).map((e) => e.note)
+  assert.deepEqual(notes("jolli"), ["Jollibee Ayala"], "part of a word, any case")
+  assert.deepEqual(notes("grab"), ["grab home", "grab to office"], "newest first")
+  assert.deepEqual(notes("grab office"), ["grab to office"], "every word has to match")
+  assert.deepEqual(notes("pina"), ["piña shake and cake"], "accents don't matter")
+  assert.deepEqual(notes("245"), ["grab home", "Jollibee Ayala"], "an amount matches exactly")
+  assert.deepEqual(notes("₱1,250"), ["piña shake and cake"])
+  assert.deepEqual(notes("25k"), ["salary"])
+  assert.deepEqual(notes("transp"), ["grab home", "grab to office"], "the start of a category's name")
+  assert.deepEqual(notes("", "transport"), ["grab home", "grab to office"], "a filter alone lists the category")
+  assert.deepEqual(notes("245", "food"), ["Jollibee Ayala"])
+  assert.deepEqual(notes("", "savings"), ["laptop"])
+  assert.equal(notes("").length, es.length, "nothing typed, no filter: everything")
+  assert.deepEqual(notes("mystery"), [])
+  // Same day: the line logged later comes first, like on Today.
+  const sameDay = [entry("2026-10-07", 50, "taho"), entry("2026-10-07", 60, "taho")]
+  assert.deepEqual(searchEntries(sameDay, "taho").map((e) => e.amount), [6000, 5000])
+})
+
+test("totals split spending, income and net savings", () => {
+  const es = [
+    entry("2026-10-01", 120, "coffee"),
+    entry("2026-10-02", 186, "grab", { category: "transport" }),
+    entry("2026-10-05", 25000, "salary", { income: true, category: "income" }),
+    entry("2026-10-06", 2000, "", { category: "savings" }),
+    entry("2026-10-07", 500, "", { category: "savings", income: true }),
+  ]
+  assert.deepEqual(totalsOf(es), { spent: 30600, income: 2500000, saved: 150000 })
+  assert.deepEqual(totalsOf([]), { spent: 0, income: 0, saved: 0 })
 })
 
 test("undo puts a deleted entry back with the same id, in the same place, and never twice", () => {
