@@ -10,7 +10,7 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "test": "node --test tests/ledger.test.ts tests/insights.test.ts tests/classifier.test.ts tests/tally-motion.test.ts tests/preload.test.ts",
+    "test": "node --test tests/ledger.test.ts tests/insights.test.ts tests/classifier.test.ts tests/tally-motion.test.ts tests/preload.test.ts tests/sync.test.ts",
     "icons": "node scripts/icons.mjs",
     "mascot:assets": "node scripts/mascot-assets.mjs",
     "mascot:animations": "node scripts/mascot-animations.mjs"
