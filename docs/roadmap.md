@@ -8,6 +8,8 @@ When working in an interactive session (not the hourly routine), feature branche
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: `npm run e2e` walks the main flows in Chromium at iPhone size (logging, the typo check and Fix, delete
+  and Undo, search, CSV export, answering a bill). Playwright stays optional, so `npm ci` and Vercel are unchanged.
 - 2026-10-30: The tips (`advise()`) moved to `src/lib/advice.ts` and load with Insights: the launch script drops
   from 155.4 to 147.6 KB gzipped.
 - 2026-10-30: Confirm detected bills. Insights asks once per detected bill (Yes / Not a bill); answers live in
