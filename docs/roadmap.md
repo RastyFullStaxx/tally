@@ -32,14 +32,23 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **Catch a likely typo in an amount** (`rasty/tally-odd-amounts`, started 2026-10-30 16:05 UTC)
+  - [ ] `unusualAmount(entries, entry)` in `insights.ts`: same first word and category, 5+ entries in the last
+        180 days; flags 4× the usual (median) and past anything paid before, or a quarter and below anything
+        paid before, with a floor so ₱15 → ₱60 jeep rides don't count
+  - [ ] Tests in `tests/insights.test.ts`
+  - [ ] App: after a new line is saved (not an edit), a notice like "₱1,200 for coffee is 10× the usual ₱120.
+        An extra zero?" with **Fix**, which opens that entry; the notice keeps data, not closures, so it acts
+        on the latest entries
+  - [ ] Browser check; gate; merge
+- Next after it: the weekday-aware forecast, measured with a backtest before it replaces anything.
 
 ## Next up (ranked)
 
 1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-2. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
+2. **Seasonality-aware forecast** in `insights.ts` (weekends and paydays), advising only on the days ahead.
 3. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
