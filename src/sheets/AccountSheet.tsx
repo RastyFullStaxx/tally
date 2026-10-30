@@ -49,7 +49,7 @@ export function AccountPanel({ onDone }: { onDone: () => void }) {
         <li>Signing out never deletes what's on this phone.</li>
         <li>Export a backup first (··· → Export backup), just in case.</li>
       </ul>
-      {!auth.connected && <p className="rounded-md bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">Sign-in isn't connected in this version yet.</p>}
+      {!auth.connected && <p className="rounded-md bg-foreground/[0.03] px-2.5 py-2 text-xs text-muted-foreground">Sign-in isn't connected in this version yet.</p>}
       {problem && (
         <p role="alert" className="px-1 text-sm text-over">
           {problem}

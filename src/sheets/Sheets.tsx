@@ -75,7 +75,9 @@ export function Sheets({ sheet, open, onOpenChange, budget, goal, onBudget, onGo
                 </span>
               </li>
             </ol>
-            <p className="rounded-md bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">Always use the home-screen icon after that. It keeps its own data, separate from this Safari tab.</p>
+            <p className="rounded-md bg-foreground/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
+              Always use the home-screen icon after that. It keeps its own data, separate from this Safari tab.
+            </p>
           </Info>
         )}
         {sheet?.kind === "account" && <AccountPanel onDone={done} />}
@@ -107,7 +109,7 @@ function Info({ title, description, onDone, children }: { title: string; descrip
 }
 
 /** Something to type, shown the way it looks on the entry line. */
-const Ex = ({ children }: { children: ReactNode }) => <span className="rounded-sm bg-white/[0.07] px-1 py-px whitespace-nowrap text-foreground">{children}</span>
+const Ex = ({ children }: { children: ReactNode }) => <span className="rounded-sm bg-foreground/[0.07] px-1 py-px whitespace-nowrap text-foreground">{children}</span>
 
 // The whole app on one screen: each row is a question a newcomer has, answered with what to type or tap.
 const HOW_TO = [
@@ -172,7 +174,7 @@ function HowTo() {
           </li>
         ))}
       </ul>
-      <p className="rounded-md bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
+      <p className="rounded-md bg-foreground/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
         No account, no internet needed. Everything stays on this phone, so back it up now and then: ··· → Export backup.
       </p>
     </>

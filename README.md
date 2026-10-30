@@ -74,6 +74,7 @@ On both screens, top right:
 - **How to use Tally.** The whole app on one screen. It also opens by itself the first time Tally runs on a phone.
 - **Install Tally.** Android and desktop Chrome show the real install prompt. iPhone shows the Add to Home Screen steps. Hidden once installed.
 - **Check for updates.** Becomes **Update now** when a new version is waiting.
+- **Light mode / Dark mode.** Paper or navy, for this phone. The new theme grows out from where you tapped.
 - **Monthly budget**, also behind the pencil on the Insights budget card and the safe-to-spend line on Today.
 - **Savings goal.** Insights shows how close you are and when you'll get there.
 - **Which category?**, **Export backup** and **Import backup**.

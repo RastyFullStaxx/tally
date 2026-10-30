@@ -20,7 +20,8 @@ import { formatPeso } from "@/lib/format"
 import { addVote, describeOddAmount, tipFeatures, unusualAmount, type Tip } from "@/lib/insights"
 import { removeEntry, restoreEntry, upsertEntry, withBill, type Filter } from "@/lib/ledger"
 import type { Entry } from "@/lib/model"
-import { animateMascot, exportBackup, exportCsv, helpSeen, markHelpSeen, setAnimateMascot } from "@/lib/store"
+import { animateMascot, exportBackup, exportCsv, helpSeen, markHelpSeen, saveTheme, savedTheme, setAnimateMascot } from "@/lib/store"
+import { switchTheme, type Theme } from "@/lib/theme"
 
 // Clock readings happen out here, away from render.
 const keyed = <T,>(value: T) => ({ ...value, key: Date.now() })
@@ -42,6 +43,7 @@ export default function App() {
   const [search, setSearch] = useState<{ open: boolean; query: string; filter: Filter }>({ open: false, query: "", filter: "all" })
   const [typing, setTyping] = useState(false)
   const [animate, setAnimate] = useState(animateMascot)
+  const [theme, setTheme] = useState<Theme>(savedTheme)
   useEffect(preloadInsightsWhenIdle, [])
 
   const edit = (entry: Entry) => {
@@ -68,6 +70,12 @@ export default function App() {
   const vote = (tip: Tip, value: 1 | -1) => {
     commit({ ...data, votes: addVote(data.votes, { id: tip.id, kind: tip.kind, vote: value, at: Date.now(), features: tipFeatures(data.entries, data.budget, today) }) })
     say(value > 0 ? "Thanks. Tally will show more tips like this." : "Got it. Fewer tips like this.")
+  }
+  const toggleTheme = (from?: { x: number; y: number }) => {
+    const next = theme === "dark" ? "light" : "dark"
+    setTheme(next)
+    saveTheme(next)
+    switchTheme(next, from)
   }
   const toggleAnimation = () => {
     setAnimate(!animate)
@@ -100,6 +108,8 @@ export default function App() {
       say={say}
       animateTally={animate}
       onToggleAnimation={toggleAnimation}
+      theme={theme}
+      onToggleTheme={toggleTheme}
     />
   )
 

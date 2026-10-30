@@ -105,7 +105,7 @@ function Search({ entries, query, onQuery, filter, onFilter, onPick }: Omit<Prop
               onQuery("")
               input.current?.focus()
             }}
-            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-md text-muted-foreground active:bg-white/[0.06]"
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-md text-muted-foreground active:bg-foreground/[0.06]"
           >
             <CloseIcon className="size-4" />
           </button>
@@ -125,10 +125,10 @@ function Search({ entries, query, onQuery, filter, onFilter, onPick }: Omit<Prop
               onClick={() => onFilter(f)}
               className={cn(
                 "relative h-7 shrink-0 rounded-sm border px-2.5 text-xs font-medium transition-colors after:absolute after:inset-x-0 after:-inset-y-2",
-                on ? "border-transparent" : "border-border text-muted-foreground active:bg-white/[0.04]",
+                on ? "border-transparent" : "border-border text-muted-foreground active:bg-foreground/[0.04]",
                 on && !tint && "bg-accent text-foreground"
               )}
-              style={on && tint ? { color: `color-mix(in oklab, ${tint} 70%, white)`, backgroundColor: `color-mix(in oklab, ${tint} 18%, transparent)` } : undefined}
+              style={on && tint ? { color: `color-mix(in oklab, ${tint} 70%, var(--ink))`, backgroundColor: `color-mix(in oklab, ${tint} 18%, transparent)` } : undefined}
             >
               {f === "all" ? "All" : CATEGORIES[f]}
             </button>
@@ -152,7 +152,7 @@ function Search({ entries, query, onQuery, filter, onFilter, onPick }: Omit<Prop
             <ul>
               {rows.map((e) => (
                 <li key={e.id} className="border-b border-rule">
-                  <button type="button" onClick={() => onPick(e)} className="flex h-9 w-full items-center gap-2 px-2 text-left text-sm transition-colors active:bg-white/[0.04]">
+                  <button type="button" onClick={() => onPick(e)} className="flex h-9 w-full items-center gap-2 px-2 text-left text-sm transition-colors active:bg-foreground/[0.04]">
                     <span className="w-12 shrink-0 text-xs text-faint tabular-nums">{toDate(e.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" })}</span>
                     <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
                     <CategoryChip category={e.category} label={labelOf(e)} />

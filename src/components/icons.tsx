@@ -87,3 +87,9 @@ export const TableIcon = icon(
 export const UserIcon = icon(
   '<path fill="none" stroke="currentColor" stroke-width="2" d="M20 18.5c0 1.933-3.582 2.5-8 2.5s-8-.567-8-2.5S7.582 14 12 14s8 2.567 8 4.5ZM16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0Z"/>'
 )
+export const SunIcon = icon(
+  '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M12 4V3m5.657 3.343l.707-.707M20 12h1m-3.343 5.657l.707.707M12 20v1m-5.657-3.343l-.707.707M4 12H3m3.343-5.657l-.707-.707M17 12a5 5 0 1 1-10 0a5 5 0 0 1 10 0Z"/>'
+)
+export const MoonIcon = icon(
+  '<path fill="currentColor" d="m13.38 4.121l-.91.412a1 1 0 0 1 1.082-1.397zM14 7h1zm-9.879 6.38l-.985.171a1 1 0 0 1 1.397-1.082zM20 12h1zm-6.62-7.879l.912-.412A8 8 0 0 1 15 7h-2c0-.88-.19-1.715-.53-2.467zM14 7h1a8 8 0 0 1-8 8v-2a6 6 0 0 0 6-6zm-7 7v1a8 8 0 0 1-3.29-.709l.411-.911l.412-.911A6 6 0 0 0 7 13zm-2.879-.62l.985-.171A7 7 0 0 0 12 19v2c-4.443 0-8.128-3.218-8.864-7.449zM12 20v-1a7 7 0 0 0 7-7h2a9 9 0 0 1-9 9zm8-8h-1a7 7 0 0 0-5.79-6.894l.17-.985l.172-.985C17.782 3.872 21 7.558 21 12z"/>'
+)

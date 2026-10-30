@@ -7,6 +7,18 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#0b1426" />
+    <script>
+      // The saved theme before the first paint, so a light phone never flashes navy (src/lib/theme.ts switches it
+      // later). iPhone reads the status-bar style once, at launch: on paper it needs dark text.
+      try {
+        if (localStorage.getItem("tally:theme") === "light") {
+          document.documentElement.classList.replace("dark", "light")
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f6f3ec")
+          document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", "default")
+        }
+      } catch {}
+    </script>
     <meta name="apple-mobile-web-app-title" content="Tally" />
     <title>Tally</title>
   </head>

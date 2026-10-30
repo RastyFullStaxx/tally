@@ -45,11 +45,14 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Navy only: there is no light theme. Category and chart colours were run through the dataviz
-   validator against the card surface (#111D35): all in the dark lightness band, >= 5:1 contrast,
-   and the picker order in components/category.tsx keeps neighbours apart for colourblind eyes. */
+/* Navy is the default; `.light` on <html> (store.ts, set before first paint by index.html) switches to paper.
+   Dark category and chart colours were run through the dataviz validator against the card surface (#111D35):
+   all in the dark lightness band, >= 5:1 contrast, and the picker order in components/category.tsx keeps
+   neighbours apart for colourblind eyes. The light set keeps those hues and that order, darkened to >= 4.5:1
+   on white cards. --ink is what tints mix toward: white on navy, near-black on paper. */
 :root {
     color-scheme: dark;
+    --ink: white;
     --background: #0b1426;
     --foreground: #eef2fa;
     --card: #111d35;
@@ -94,6 +97,59 @@
     --cat-savings: #d4ec5c; /* lime: >=16 normal / >=14 CVD from every other colour on #111D35 */
 }
 
+:root.light {
+    color-scheme: light;
+    --ink: #1a2236;
+    --background: #f6f3ec;
+    --foreground: #1a2236;
+    --card: #ffffff;
+    --card-foreground: #1a2236;
+    --popover: #ffffff;
+    --popover-foreground: #1a2236;
+    --primary: #8a6519;
+    --primary-foreground: #ffffff;
+    --secondary: #ece6d8;
+    --secondary-foreground: #1a2236;
+    --muted: #efeae0;
+    --muted-foreground: #566074;
+    --accent: #e6dfcf;
+    --accent-foreground: #1a2236;
+    --destructive: #c03a26;
+    --border: rgb(26 34 54 / 10%);
+    --input: rgb(26 34 54 / 14%);
+    --ring: #8a6519;
+
+    --raised: #ffffff;
+    --track: #e6e0d2;
+    --faint: #7d869a;
+    --income: #0d7550;
+    --over: #c03a26;
+    --rule: rgb(26 34 54 / 8%);
+    --margin: rgb(138 101 25 / 30%);
+
+    --chart-spent: #b38e3a;
+    --chart-income: #0a9068;
+    --chart-pace: #7d869a;
+
+    --cat-food: #b0602a;
+    --cat-bills: #7258c2;
+    --cat-groceries: #47833a;
+    --cat-transport: #2b72b8;
+    --cat-shopping: #ad4a7a;
+    --cat-leisure: #806b0c;
+    --cat-health: #007a80;
+    --cat-other: #646d80;
+    --cat-income: #0d7550;
+    --cat-savings: #5f7a00;
+}
+
+/* The theme switch: the new theme grows as a circle from where it was tapped (store.ts drives the clip). */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -108,7 +164,7 @@
     overscroll-behavior: none;
   }
   ::selection {
-    background: rgb(216 181 106 / 35%);
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
   }
 }
 
