@@ -82,6 +82,8 @@ On both screens, top right:
 
 ## Develop
 
+How the code is organised, and how to add to it: [docs/architecture.md](docs/architecture.md).
+
 ```bash
 npm install
 npm run dev        # http://localhost:5173

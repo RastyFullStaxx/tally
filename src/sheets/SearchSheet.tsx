@@ -7,7 +7,10 @@ import { CATEGORY_ORDER, CategoryChip, categoryColor, labelOf } from "@/componen
 import { CloseIcon, SearchIcon } from "@/components/icons"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
-import { CATEGORIES, formatPeso, isIncome, isSaving, monthName, monthOf, searchEntries, toDate, totalsOf, type Entry, type Filter } from "@/lib/ledger"
+import { CATEGORIES, isIncome, isSaving, type Entry } from "@/lib/model"
+import { monthName, monthOf, toDate } from "@/lib/dates"
+import { formatPeso } from "@/lib/format"
+import { searchEntries, totalsOf, type Filter } from "@/lib/ledger"
 
 type Props = {
   open: boolean
@@ -110,7 +113,7 @@ function Search({ entries, query, onQuery, filter, onFilter, onPick }: Omit<Prop
       </form>
 
       {/* Every filter in one swipeable row. The tap area reaches past each small chip, to 44px tall. */}
-      <div role="group" aria-label="Category" className="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div role="group" aria-label="Category" className="-mx-1 flex shrink-0 [scrollbar-width:none] gap-1 overflow-x-auto px-1 py-1.5 [&::-webkit-scrollbar]:hidden">
         {FILTERS.map((f) => {
           const on = filter === f
           const tint = f === "all" ? undefined : categoryColor(f)

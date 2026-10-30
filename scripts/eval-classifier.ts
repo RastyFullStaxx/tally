@@ -4,7 +4,8 @@
 // Each persona has its own merchants (most not in the keyword list), its own filing habits (some against the
 // keywords), short forms, typos, and one habit that changes halfway.
 import { predictCategory, trainCategoryModel, type Prediction } from "../src/lib/classifier.ts"
-import { localDate, type CategoryId, type Entry } from "../src/lib/ledger.ts"
+import { type CategoryId, type Entry } from "../src/lib/model.ts"
+import { localDate } from "../src/lib/dates.ts"
 
 type Habit = { notes: string[]; category: CategoryId; pesos: [number, number]; weight: number; from?: number; until?: number }
 type Persona = { name: string; perDay: number; habits: Habit[] }
@@ -94,7 +95,8 @@ function typed(note: string, next: () => number) {
   const r = next()
   const i = Math.floor(next() * words.length)
   const w = words[i]
-  if (r < 0.1 && w.length >= 5) words[i] = w.slice(0, 3 + Math.floor(next() * 2)) // short form: "pureg", "jolli"
+  if (r < 0.1 && w.length >= 5)
+    words[i] = w.slice(0, 3 + Math.floor(next() * 2)) // short form: "pureg", "jolli"
   else if (r < 0.2 && w.length >= 5) {
     const at = 1 + Math.floor(next() * (w.length - 2))
     const kind = next()

@@ -1,9 +1,12 @@
 // Where Tally's data lives: one JSON document in this app's own localStorage, on the phone only.
 // ponytail: localStorage caps near 5 MB, about ten years at ten entries a day; move to IndexedDB if it gets close.
-import { localDate, mergeBackup, toBackup, toCsv, type Data } from "./ledger"
+import { type Data } from "./model"
+import { localDate } from "./dates"
+import { mergeBackup, toBackup, toCsv } from "./backup"
 
 const KEY = "tally:v1"
 const HELP_SEEN = "tally:help-seen" // a flag for this phone, kept out of backups
+const ANIMATE = "tally:animate-mascot" // "on" or "off" for this phone, kept out of backups
 
 /** Whether How to use has been shown on this phone. Unreadable storage counts as seen, so it never nags. */
 export function helpSeen() {
@@ -19,6 +22,23 @@ export function markHelpSeen() {
     localStorage.setItem(HELP_SEEN, "1")
   } catch {
     // Storage is blocked: it shows again on the next launch, which is harmless.
+  }
+}
+
+/** Whether the cat in the header moves. On unless turned off; unreadable storage means still. */
+export function animateMascot() {
+  try {
+    return localStorage.getItem(ANIMATE) !== "off"
+  } catch {
+    return false
+  }
+}
+
+export function setAnimateMascot(on: boolean) {
+  try {
+    localStorage.setItem(ANIMATE, on ? "on" : "off")
+  } catch {
+    // Storage is blocked: the choice lasts until the app closes.
   }
 }
 

@@ -2,7 +2,8 @@
 // trained on your own saved entries. Each save or edit leaves the final category on the entry and the model
 // is rebuilt from them, so its guesses follow your habits the longer the app is used.
 // Pure: no DOM, no storage, no network.
-import { KEYWORDS, isExpense, isSaving, keywordCategory, wordsOf, type CategoryId, type Entry } from "./ledger.ts"
+import { isExpense, isSaving, type CategoryId, type Entry } from "./model.ts"
+import { KEYWORDS, keywordCategory, wordsOf } from "./parse.ts"
 
 const DAY = 86_400_000
 const HALF_LIFE_DAYS = 90 // a correction made last week outweighs a habit from last year

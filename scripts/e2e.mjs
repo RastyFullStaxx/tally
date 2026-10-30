@@ -80,7 +80,10 @@ await flow("delete, then Undo puts the entry back with the same id", coffees, as
   await page.getByRole("button", { name: "Delete" }).click()
   await page.getByRole("button", { name: "Tap again to delete" }).click()
   await page.getByRole("button", { name: "Undo" }).click()
-  assert.deepEqual((await stored(page)).entries.map((e) => e.id), before)
+  assert.deepEqual(
+    (await stored(page)).entries.map((e) => e.id),
+    before
+  )
 })
 
 await flow("search finds entries from any day and shows their total", coffees, async (page) => {

@@ -4,7 +4,12 @@ process.env.TZ = "Asia/Manila"
 
 import assert from "node:assert/strict"
 import test from "node:test"
-import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, searchEntries, shiftDay, shiftMonth, toBackup, toCsv, totalsOf, notBills, type Entry, type TipVote } from "../src/lib/ledger.ts"
+import { notBills, type Entry, type TipVote } from "../src/lib/model.ts"
+import { parseLine } from "../src/lib/parse.ts"
+import { localDate, shiftDay, shiftMonth } from "../src/lib/dates.ts"
+import { formatPeso } from "../src/lib/format.ts"
+import { monthSummary, removeEntry, restoreEntry, searchEntries, totalsOf, upsertEntry, withBill } from "../src/lib/ledger.ts"
+import { mergeBackup, toBackup, toCsv } from "../src/lib/backup.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({
@@ -128,7 +133,10 @@ test("search finds entries by note, category name or amount, inside a filter, ne
   assert.deepEqual(notes("mystery"), [])
   // Same day: the line logged later comes first, like on Today.
   const sameDay = [entry("2026-10-07", 50, "taho"), entry("2026-10-07", 60, "taho")]
-  assert.deepEqual(searchEntries(sameDay, "taho").map((e) => e.amount), [6000, 5000])
+  assert.deepEqual(
+    searchEntries(sameDay, "taho").map((e) => e.amount),
+    [6000, 5000]
+  )
 })
 
 test("totals split spending, income and net savings", () => {
@@ -153,7 +161,10 @@ test("undo puts a deleted entry back with the same id, in the same place, and ne
   assert.deepEqual(restoreEntry(after, removed!), data)
   // A line added while the notice was up stays, and the entry still goes back where it was.
   const added = { ...after, entries: [...after.entries, entry("2026-10-03", 50, "taho")] }
-  assert.deepEqual(restoreEntry(added, removed!).entries.map((e) => e.note), ["coffee", "grab", "7-eleven", "taho"])
+  assert.deepEqual(
+    restoreEntry(added, removed!).entries.map((e) => e.note),
+    ["coffee", "grab", "7-eleven", "taho"]
+  )
   // Already back (an import brought it in): nothing duplicates.
   assert.equal(restoreEntry(data, removed!), data)
   // Lines deleted after it can leave its old place past the end; it lands last.
@@ -225,4 +236,17 @@ test("bill answers travel in backups, merge by item with the phone's answer winn
   assert.deepEqual(notBills(merged), ["shopee"])
   assert.deepEqual(mergeBackup({ entries: [], budget: 0 }, JSON.parse(toBackup(merged))).data.bills, merged.bills)
   assert.equal("bills" in mergeBackup({ entries: [], budget: 0 }, { entries: [] }).data, false)
+})
+
+test("upsert replaces an entry in place or adds it; bill answers set, clear, and leave no empty map", () => {
+  const a = entry("2026-10-01", 120, "coffee")
+  const b = entry("2026-10-02", 50, "taho")
+  const data = { entries: [a, b], budget: 0 }
+  assert.deepEqual(upsertEntry(data, { ...a, amount: 13000 }).entries, [{ ...a, amount: 13000 }, b], "same place")
+  assert.deepEqual(upsertEntry(data, entry("2026-10-03", 5, "candy")).entries.length, 3)
+  const answered = withBill(data, "meralco", "bill")
+  assert.deepEqual(answered.bills, { meralco: "bill" })
+  assert.deepEqual(withBill(answered, "meralco", "not").bills, { meralco: "not" })
+  assert.equal("bills" in withBill(answered, "meralco", null), false)
+  assert.equal(data.bills, undefined, "never mutates")
 })

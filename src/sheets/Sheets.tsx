@@ -2,14 +2,15 @@ import { Mascot } from "@/components/Mascot"
 
 import { useState, type FormEvent, type ReactNode } from "react"
 
-import { AccountPanel } from "@/components/AccountSheet"
+import { AccountPanel } from "@/sheets/AccountSheet"
 import type { Sheet } from "@/components/AppMenu"
 import { CategoryGuideList } from "@/components/CategoryGuide"
 import { AddSquareIcon, CalendarIcon, ChartIcon, MoreIcon, PencilIcon, PiggyIcon, ReturnIcon, SearchIcon, ShareIcon, TrendUpIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
-import { parseAmount, type Goal } from "@/lib/ledger"
+import { type Goal } from "@/lib/model"
+import { parseAmount } from "@/lib/parse"
 
 type Props = {
   sheet: { kind: Sheet; key: number } | null
@@ -110,12 +111,44 @@ const Ex = ({ children }: { children: ReactNode }) => <span className="rounded-s
 
 // The whole app on one screen: each row is a question a newcomer has, answered with what to type or tap.
 const HOW_TO = [
-  { icon: ReturnIcon, title: "Type it, press return. Done.", body: <><Ex>jollibee 245</Ex> becomes ₱245 in Food. Nothing to fill in.</> },
-  { icon: TrendUpIcon, title: "Money came in?", body: <>Add a plus: <Ex>+25000 salary</Ex></> },
-  { icon: PiggyIcon, title: "Saving?", body: <>Just say so: <Ex>1000 savings</Ex> puts it aside, <Ex>withdraw 500</Ex> takes some out. Neither counts as spending.</> },
+  {
+    icon: ReturnIcon,
+    title: "Type it, press return. Done.",
+    body: (
+      <>
+        <Ex>jollibee 245</Ex> becomes ₱245 in Food. Nothing to fill in.
+      </>
+    ),
+  },
+  {
+    icon: TrendUpIcon,
+    title: "Money came in?",
+    body: (
+      <>
+        Add a plus: <Ex>+25000 salary</Ex>
+      </>
+    ),
+  },
+  {
+    icon: PiggyIcon,
+    title: "Saving?",
+    body: (
+      <>
+        Just say so: <Ex>1000 savings</Ex> puts it aside, <Ex>withdraw 500</Ex> takes some out. Neither counts as spending.
+      </>
+    ),
+  },
   { icon: PencilIcon, title: "Wrong category?", body: <>Tap the chip at the end of the line, or tap the entry later. Tally learns, so next time it guesses right.</> },
   { icon: CalendarIcon, title: "Forgot one?", body: <>Tap ‹ at the top to go back a day.</> },
-  { icon: SearchIcon, title: "Looking for one?", body: <>Tap the magnifier at the top and type <Ex>grab</Ex> or <Ex>245</Ex>, or pick a category. Tap a result to fix it.</> },
+  {
+    icon: SearchIcon,
+    title: "Looking for one?",
+    body: (
+      <>
+        Tap the magnifier at the top and type <Ex>grab</Ex> or <Ex>245</Ex>, or pick a category. Tap a result to fix it.
+      </>
+    ),
+  },
   { icon: ChartIcon, title: "Where did it go?", body: <>Insights shows what's safe to spend today, the bills coming up, and what to do next.</> },
   { icon: MoreIcon, title: "Set it once.", body: <>Your monthly budget and savings goal are in ··· at the top.</> },
 ]
@@ -125,7 +158,9 @@ function HowTo() {
     <>
       <div className="flex items-center gap-3">
         <Mascot pose="welcome" size={80} />
-        <p className="text-sm text-muted-foreground"><span className="block font-medium text-foreground">Meet your little budget companion.</span>A note at a time, you've got this.</p>
+        <p className="text-sm text-muted-foreground">
+          <span className="block font-medium text-foreground">Meet your little budget companion.</span>A note at a time, you've got this.
+        </p>
       </div>
       <ul className="space-y-2.5 text-sm">
         {HOW_TO.map((row) => (

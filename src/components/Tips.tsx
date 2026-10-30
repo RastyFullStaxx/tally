@@ -5,7 +5,7 @@ import { cn } from "cn"
 import { AlertIcon, ArrowRightIcon, BulbIcon, CheckCircleIcon, ThumbDownIcon, ThumbUpIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import type { Tip } from "@/lib/insights"
-import type { TipVote } from "@/lib/ledger"
+import type { TipVote } from "@/lib/model"
 
 export const TONE = {
   warn: { icon: AlertIcon, className: "text-over" },
@@ -17,7 +17,13 @@ type Props = { tips: Tip[]; votes?: TipVote[]; onVote: (tip: Tip, vote: 1 | -1) 
 
 /** The "What to do" list. Helpful / Not helpful teaches Tally which kinds of tips to show you. */
 export function Tips({ tips, votes = [], onVote }: Props) {
-  if (!tips.length) return <div className="flex items-center gap-3 py-1"><Mascot pose="thinking" size={64} /><p className="text-sm text-muted-foreground">Log a few days of spending and tips will show up here.</p></div>
+  if (!tips.length)
+    return (
+      <div className="flex items-center gap-3 py-1">
+        <Mascot pose="thinking" size={64} />
+        <p className="text-sm text-muted-foreground">Log a few days of spending and tips will show up here.</p>
+      </div>
+    )
   const voted = new Map(votes.map((v) => [v.id, v.vote]))
   return (
     <ul className="divide-y divide-border">

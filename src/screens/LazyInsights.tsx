@@ -1,12 +1,12 @@
 import { Component, lazy, Suspense, type ComponentProps, type ReactNode } from "react"
 
-import { loadInsights } from "@/components/insights-chunk"
+import { loadInsights } from "@/screens/insights-chunk"
 import { AlertIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { monthName, monthOf, toDate } from "@/lib/ledger"
+import { monthName, monthOf, toDate } from "@/lib/dates"
 
-type Props = ComponentProps<typeof import("@/components/Insights").Insights>
+type Props = ComponentProps<typeof import("@/screens/Insights").Insights>
 
 const Screen = lazy(() => loadInsights().then((m) => ({ default: m.Insights })))
 
@@ -30,7 +30,9 @@ function Shell({ today, menu, children }: { today: string; menu: ReactNode; chil
 function Loading({ today, menu }: { today: string; menu: ReactNode }) {
   return (
     <Shell today={today} menu={menu}>
-      <span className="sr-only" role="status">Loading Insights…</span>
+      <span className="sr-only" role="status">
+        Loading Insights…
+      </span>
       {[132, 176, 96].map((height) => (
         <Card key={height} aria-hidden className="animate-pulse motion-reduce:animate-none" style={{ height }} />
       ))}
