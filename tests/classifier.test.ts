@@ -1,7 +1,7 @@
 // The category learner: Naive Bayes over your own saved entries, with exact repeats and keywords as backstops.
 import assert from "node:assert/strict"
 import test from "node:test"
-import { predictCategory, trainCategoryModel } from "../src/lib/classifier.ts"
+import { grams, predictCategory, similarity, trainCategoryModel } from "../src/lib/classifier.ts"
 import { parseLine, type Entry } from "../src/lib/ledger.ts"
 
 const DAY = 86_400_000
@@ -57,4 +57,29 @@ test("a note logged as income is income next time, even without the plus; saving
   assert.deepEqual(parseLine("noemi payment 300", (note, amount) => predictCategory(model, note, amount).category), { amount: 30000, income: true, note: "noemi payment", category: "income" })
   assert.equal(guess(paid, "noemi").source, "default", "only the exact note, and income never trains the expense model")
   assert.equal(guess([entry("gcash", "savings", 500, 0)], "gcash").source, "default")
+})
+
+test("a typo or short form of a note you've logged borrows its category", () => {
+  const es = [entry("aling nena ulam", "food", 80, 3), entry("tita mel store", "groceries", 150, 2), entry("kuya ben trike", "transport", 30, 1)]
+  assert.deepEqual([guess(es, "alng nena").category, guess(es, "alng nena").source], ["food", "similar"], "a dropped letter")
+  assert.equal(guess(es, "titamel").category, "groceries", "words run together")
+  assert.equal(guess(es, "kuyaben").category, "transport")
+  // Its own habit beats the letters: the latest category a note was saved under is the one it lends.
+  const moved = [...es, entry("tita mel store", "food", 150, 0, { updatedAt: 1_001 * DAY })]
+  assert.equal(guess(moved, "tita mell").category, "food")
+})
+
+test("letters alone don't decide when a word, a keyword or nothing at all should", () => {
+  const es = [entry("aling nena ulam", "food", 80, 3), entry("kuya ben trike", "transport", 30, 1)]
+  assert.equal(guess(es, "zzqx").source, "default", "nothing alike: Other")
+  assert.equal(guess(es, "meralco").source, "keyword", "a keyword still comes first")
+  assert.equal(guess([], "jolibee").source, "default", "no history: nothing to borrow from")
+})
+
+test("similarity is 1 for the same letters, 0 for none shared, and in between for a typo", () => {
+  assert.ok(Math.abs(similarity(grams("jollibee"), grams("Jollibee!")) - 1) < 1e-9)
+  assert.equal(similarity(grams("jollibee"), grams("meralco")), 0)
+  const typo = similarity(grams("jollibee"), grams("jolibee"))
+  assert.ok(typo > 0.6 && typo < 1, String(typo))
+  assert.equal(similarity(grams(""), grams("jollibee")), 0)
 })
