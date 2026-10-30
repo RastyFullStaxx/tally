@@ -40,3 +40,4 @@ export const QuestionIcon = icon("<path fill=\"none\" stroke=\"currentColor\" st
 export const SearchIcon = icon("<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"2\" d=\"m15.879 15.879l4.242 4.242M18 10.5a7.5 7.5 0 1 1-15 0a7.5 7.5 0 0 1 15 0Z\"/>")
 export const CloseIcon = icon("<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"2\" d=\"m5.636 5.637l12.728 12.728m-12.728 0L18.364 5.637\"/>")
 export const TableIcon = icon("<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"2\" d=\"M4 9h16M4 14h16M12 4v16m-7 0h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z\"/>")
+export const UserIcon = icon("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" d=\"M20 18.5c0 1.933-3.582 2.5-8 2.5s-8-.567-8-2.5S7.582 14 12 14s8 2.567 8 4.5ZM16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0Z\"/>")

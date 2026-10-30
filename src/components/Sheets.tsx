@@ -2,6 +2,7 @@ import { Mascot } from "@/components/Mascot"
 
 import { useState, type FormEvent, type ReactNode } from "react"
 
+import { AccountPanel } from "@/components/AccountSheet"
 import type { Sheet } from "@/components/AppMenu"
 import { CategoryGuideList } from "@/components/CategoryGuide"
 import { AddSquareIcon, CalendarIcon, ChartIcon, MoreIcon, PencilIcon, PiggyIcon, ReturnIcon, SearchIcon, ShareIcon, TrendUpIcon } from "@/components/icons"
@@ -76,6 +77,7 @@ export function Sheets({ sheet, open, onOpenChange, budget, goal, onBudget, onGo
             <p className="rounded-md bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">Always use the home-screen icon after that. It keeps its own data, separate from this Safari tab.</p>
           </Info>
         )}
+        {sheet?.kind === "account" && <AccountPanel onDone={done} />}
         {sheet?.kind === "guide" && (
           <Info title="Which category?" description="What goes where, and a quick way to decide." onDone={done}>
             <CategoryGuideList />
