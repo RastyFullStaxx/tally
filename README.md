@@ -27,7 +27,8 @@ a small model on the phone, and recent entries count most.
 
 - The guess shows on the chip at the end of the line, before you press return. If it's wrong, tap the
   chip and pick the right category, and the line is saved with it.
-- To fix an entry you've already saved, tap it.
+- To fix an entry you've already saved, tap it. Deleting asks you to tap twice, and **Undo** on the notice
+  that follows puts it back for 5 seconds.
 - Both lists show what goes in each category. **··· → Which category?** adds a few questions that decide
   for you.
 

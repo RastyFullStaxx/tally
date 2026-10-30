@@ -232,6 +232,22 @@ export function lastMonths(entries: Entry[], month: string, n = 6) {
   })
 }
 
+/** What a delete took out and where it sat, so Undo can put it back exactly. */
+export type Removed = { entry: Entry; index: number }
+
+export function removeEntry(data: Data, id: string): { data: Data; removed: Removed | null } {
+  const index = data.entries.findIndex((e) => e.id === id)
+  if (index < 0) return { data, removed: null }
+  return { data: { ...data, entries: data.entries.filter((e) => e.id !== id) }, removed: { entry: data.entries[index], index } }
+}
+
+/** Undoes a delete: the same entry, id and all, back in its old place. Nothing changes if that id is already back (an import restored it). */
+export function restoreEntry(data: Data, { entry, index }: Removed): Data {
+  if (data.entries.some((e) => e.id === entry.id)) return data
+  const at = Math.min(index, data.entries.length)
+  return { ...data, entries: [...data.entries.slice(0, at), entry, ...data.entries.slice(at)] }
+}
+
 export const toBackup = (data: Data, now = new Date()) => JSON.stringify({ app: "tally", version: 1, exportedAt: now.toISOString(), ...data }, null, 2)
 
 function isEntry(x: unknown): x is Entry {
