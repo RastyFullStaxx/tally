@@ -5,6 +5,9 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: A likely typo in an amount is caught as it's logged. When a new line is far off what the same
+  thing (first word and category, 5+ times in 180 days) usually costs, a notice says so ("₱1,200 for coffee
+  is 10× the usual ₱125. An extra zero?") with Fix, which opens the entry.
 - 2026-10-30: Category guesses survive typos and short forms. When no word is known and no keyword fits, the
   past notes most alike by their letters vote. On `npm run eval:classifier` (three synthetic personas,
   8,018 expenses, each guessed from the ones before it) accuracy goes from 93.9% to 97.2%, and from 74.4%
@@ -39,7 +42,7 @@ production and only the owner merges into it.
 1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-2. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
+2. **Seasonality-aware forecast** in `insights.ts` (weekends and paydays), advising only on the days ahead.
 3. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
    guide) can load on demand too.
 
