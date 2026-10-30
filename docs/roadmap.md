@@ -49,8 +49,15 @@ When working in an interactive session (not the hourly routine), feature branche
 1. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-2. **Bundle, round two.** Radix and vaul in the entry chunk; check whether the sheets (help, category
-   guide) can load on demand too.
+2. **Bundle, round two: measured 2026-10-30, parked.** Lighthouse (simulated slow 4G and a 4× slower CPU, first
+   visit): performance 82–86, accessibility 100, best practices 100; total blocking time 40–50 ms; the
+   largest paint (4.1–4.7 s) is the cat on an empty Today, waiting on the 154 KB (gzipped) entry script.
+   - Preloading the cat image didn't help (4.4 s average without, 4.6 s with): the script is the critical
+     path, so it was dropped.
+   - The entry script: react-dom 42%, `insights.ts` 7% (the `advise()` tips could move into the Insights chunk,
+     about 6 KB gzipped), `cn` 6%, vaul 6% (the sheets could load on demand, about 10 KB gzipped).
+   - Once installed, every launch reads the script from the phone's cache, so these would mostly speed up the
+     very first visit. Worth doing only alongside other work in those files.
 
 ## Owner decisions
 
