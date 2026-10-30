@@ -4,7 +4,7 @@ process.env.TZ = "Asia/Manila"
 
 import assert from "node:assert/strict"
 import test from "node:test"
-import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, shiftDay, shiftMonth, toBackup, type Entry, type TipVote } from "../src/lib/ledger.ts"
+import { formatPeso, localDate, mergeBackup, monthSummary, parseLine, removeEntry, restoreEntry, shiftDay, shiftMonth, toBackup, type Entry, type TipVote } from "../src/lib/ledger.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({
@@ -100,6 +100,24 @@ test("monthSummary adds up a month, paces it, and keeps savings out of spending 
     ["bills", "food", "transport"]
   )
   assert.equal(monthSummary(es, "2026-09", 0, "2026-10-10").daysLeft, 0)
+})
+
+test("undo puts a deleted entry back with the same id, in the same place, and never twice", () => {
+  const es = [entry("2026-10-01", 120, "coffee"), entry("2026-10-01", 186, "grab", { category: "transport" }), entry("2026-10-02", 85, "7-eleven")]
+  const data = { entries: es, budget: 2000000, goal: { name: "Laptop", amount: 5000000 } }
+  const { data: after, removed } = removeEntry(data, es[1].id)
+  assert.deepEqual(after.entries, [es[0], es[2]])
+  assert.deepEqual(removed, { entry: es[1], index: 1 })
+  assert.equal(after.goal, data.goal, "the rest of the data is untouched")
+  assert.deepEqual(restoreEntry(after, removed!), data)
+  // A line added while the notice was up stays, and the entry still goes back where it was.
+  const added = { ...after, entries: [...after.entries, entry("2026-10-03", 50, "taho")] }
+  assert.deepEqual(restoreEntry(added, removed!).entries.map((e) => e.note), ["coffee", "grab", "7-eleven", "taho"])
+  // Already back (an import brought it in): nothing duplicates.
+  assert.equal(restoreEntry(data, removed!), data)
+  // Lines deleted after it can leave its old place past the end; it lands last.
+  assert.deepEqual(restoreEntry({ ...after, entries: [] }, removed!).entries, [es[1]])
+  assert.deepEqual(removeEntry(data, "missing"), { data, removed: null })
 })
 
 test("a backup restores to the same data and never duplicates (the restore drill)", () => {
