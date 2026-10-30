@@ -24,7 +24,8 @@ and the savings goal (··· → Savings goal) tracks that total.
 
 Categories are guessed, and the guesses learn. A note you once logged as income (`+200 noemi payment`) is
 income next time, even without the plus. Every entry you save and every category you fix trains
-a small model on the phone, and recent entries count most.
+a small model on the phone, and recent entries count most. A typo or a short form of something you've logged
+before (`jolibee`, `pureg`) still finds its category.
 
 - The guess shows on the chip at the end of the line, before you press return. If it's wrong, tap the
   chip and pick the right category, and the line is saved with it.

@@ -22,7 +22,12 @@ Status: accepted (2026-10-13)
 - **When.** Today retrains on every change to the entries (`useMemo`). The model is never stored: it's
   always derived from the entries, so nothing needs migrating or versioning.
 - **The guess, in order:** an exact repeat of a saved note → the model, if it knows any of the words and
-  is at least 40% sure → the keyword list → Other.
+  is at least 40% sure → the keyword list → the most alike past notes by their letters → Other.
+- **Alike by letters** (added 2026-10-30). A typo or a short form ("jolibee", "pureg", "titamel") shares
+  no word with anything saved, so it used to fall through to Other. Each distinct expense note is kept as
+  the three-letter pieces of its words, with the category it was last saved under. A new note compares its
+  pieces with each one (cosine similarity), and the three most alike at 0.4 or more vote, each by how alike
+  it is. Character n-grams are the standard way to make text matching survive misspellings [1][2].
 
 **Insights: rules over the user's own baselines** (`src/lib/insights.ts`): a usual week (the middle of up
 to 8 weeks), bills that come monthly, a month-end forecast and a safe-to-spend figure.
@@ -37,10 +42,32 @@ to 8 weeks), bills that come monthly, a month-end forecast and a safe-to-spend f
 **Where a trained model plugs in:** `predictCategory()` and the ranking step at the end of `advise()`.
 Either can be replaced without touching the UI. The model must run on the phone.
 
+## Measuring it
+
+`npm run eval:classifier` (`scripts/eval-classifier.ts`) replays three seeded, synthetic half-years: a
+commuter, a student and a household, 8,018 expenses in all. Each persona has its own merchants (most aren't
+in the keyword list), filing habits that go against the keywords (Watsons as shopping, 7-Eleven as
+groceries), typos and short forms in about 1 in 5 notes, and one habit that changes halfway. Each entry is
+guessed from the entries before it, the way the chip guesses while you type, and scored against the
+category it was saved under.
+
+| | All guesses | First time a note is typed |
+| --- | --- | --- |
+| Before letters (2026-10-13 model) | 93.9% | 74.4% |
+| With letters as the last step | **97.2%** | **88.5%** |
+| kNN over letters instead of Naive Bayes | 97.2% | 88.6% |
+| Letters, plus letter matches against the keyword list | 97.3% | 88.8% |
+
+Letters cut wrong guesses by more than half, and their own guesses are right 98% of the time. A full kNN
+does no better than Naive Bayes with letters as a fallback, and matching typos of keywords adds only 0.1
+points, so neither was taken. These are synthetic notebooks: the owner's real habits are the real test.
+
 ## Consequences
 
 - **Cost.** Retraining is linear in the number of entries: about 5 ms at 1,000 entries and 37 ms at
-  20,000 (5 years at 10 a day), measured on a desktop. Phones run slower.
+  20,000 (5 years at 10 a day), measured on a desktop. Phones run slower. Keeping each distinct note's
+  letters adds about a third (28 → 37 ms at 18,000 entries), and a guess that reaches the letters step
+  takes about 0.2 ms over 900 distinct notes.
 - **Corrections take effect at once.** The exact-repeat rule means one fix changes the next guess for that note.
 - **No inspection.** What the model learned shows only through its guesses. The category guide
   (··· → Which category?) explains the categories, not the model.
@@ -61,3 +88,9 @@ Either can be replaced without touching the UI. The model must run on the phone.
 - Votes reach a few hundred: enough to train a ranking model on `tipFeatures()`.
 - Entries pass about 20,000, or retraining is noticeable on the phone. Then train incrementally.
 - A second device needs the same guesses, which brings sync (see ADR 0001).
+
+## Sources
+
+1. W. B. Cavnar and J. M. Trenkle, "N-Gram-Based Text Categorization," Proceedings of SDAIR-94, 1994.
+2. P. Bojanowski, E. Grave, A. Joulin and T. Mikolov, "Enriching Word Vectors with Subword Information,"
+   Transactions of the ACL 5, 2017 (character n-grams for words never seen in training).
