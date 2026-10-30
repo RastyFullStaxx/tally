@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { advise, categoryDetail, incomeProfile, recurringBills, safeToSpend, savingsSummary, spendingPatterns, type Tip } from "@/lib/insights"
-import { CATEGORIES, formatPeso, formatPesoWhole, lastMonths, monthName, monthOf, monthSummary, shiftMonth, toDate, type Data } from "@/lib/ledger"
+import { CATEGORIES, formatPeso, formatPesoWhole, lastMonths, monthName, monthOf, monthSummary, notBills, shiftMonth, toDate, type BillDecision, type Data } from "@/lib/ledger"
 
 type Props = {
   data: Data
@@ -22,6 +22,8 @@ type Props = {
   onEditBudget: () => void
   onEditGoal: () => void
   onVote: (tip: Tip, vote: 1 | -1) => void
+  /** Your answer on a detected bill; null takes it back. */
+  onBill: (item: string, decision: BillDecision | null) => void
 }
 
 const paceChart = {
@@ -57,18 +59,19 @@ function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: Re
   )
 }
 
-export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }: Props) {
+export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, onBill }: Props) {
   const [picked, setPicked] = useState<string | null>(null)
 
   const thisMonth = monthOf(today)
   const month = picked && picked < thisMonth ? picked : thisMonth
   const current = month === thisMonth
   const s = monthSummary(data.entries, month, data.budget, today)
-  const tips = advise(data.entries, month, data.budget, today, { goal: data.goal, votes: data.votes })
+  const ignored = notBills(data)
+  const tips = advise(data.entries, month, data.budget, today, { goal: data.goal, votes: data.votes, notBills: ignored })
   const patterns = spendingPatterns(data.entries, month, today)
   const details = categoryDetail(data.entries, month, today)
-  const safe = current ? safeToSpend(data.entries, data.budget, today) : null
-  const bills = current ? recurringBills(data.entries, today) : []
+  const safe = current ? safeToSpend(data.entries, data.budget, today, ignored) : null
+  const bills = current ? recurringBills(data.entries, today, ignored) : []
   const savings = savingsSummary(data.entries, data.goal, today)
   // What Tally has learned about income so far: nobody types in a salary.
   const income = incomeProfile(data.entries, today)
@@ -236,7 +239,7 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
         {current && data.entries.length > 0 && (
           <Card className="gap-1 px-3">
             <SectionTitle>Bills that repeat</SectionTitle>
-            {bills.length ? (
+            {bills.length > 0 && (
               <ul className="divide-y divide-border">
                 {bills.map((b) => (
                   <li key={b.item} className="flex min-h-9 items-center gap-2 text-sm">
@@ -244,10 +247,40 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote }
                     <span className="min-w-0 flex-1 truncate">{capitalize(b.item)}</span>
                     <span className="shrink-0 text-xs text-muted-foreground">{b.paid ? `next ${shortDate(b.due)}` : b.due < today ? "usually paid by now" : `due around ${shortDate(b.due)}`}</span>
                     <span className="w-[4.5rem] shrink-0 text-right font-medium tabular-nums">{formatPesoWhole(b.amount)}</span>
+                    {data.bills?.[b.item] === "bill" && <CheckCircleIcon aria-label="You confirmed this bill" className="size-3.5 shrink-0 text-income" />}
                   </li>
                 ))}
               </ul>
-            ) : (
+            )}
+            {/* Detected, never added: each new one asks once, and the answer can be taken back. */}
+            {bills.some((b) => !data.bills?.[b.item]) && (
+              <div className="border-t border-border pt-0.5">
+                {bills
+                  .filter((b) => !data.bills?.[b.item])
+                  .map((b) => (
+                    <div key={b.item} className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span className="min-w-0 flex-1">Is {capitalize(b.item)} a monthly bill?</span>
+                      <button type="button" onClick={() => onBill(b.item, "bill")} className="h-11 rounded-sm px-2.5 font-medium text-primary active:bg-primary/10">
+                        Yes
+                      </button>
+                      <button type="button" onClick={() => onBill(b.item, "not")} className="h-11 rounded-sm px-2.5 font-medium active:bg-white/[0.04]">
+                        Not a bill
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+            {ignored.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-1 text-[11px] text-faint">
+                <span>Not bills (tap to count again):</span>
+                {ignored.map((item) => (
+                  <button key={item} type="button" onClick={() => onBill(item, null)} className="h-11 rounded-sm px-1.5 text-primary">
+                    {capitalize(item)}
+                  </button>
+                ))}
+              </div>
+            )}
+            {bills.length === 0 && ignored.length === 0 && (
               <p className="py-1 text-sm text-muted-foreground">
                 {firstEntry > shiftMonth(month, -2) ? "Tally spots bills that come every month once it has seen two months of entries." : "No bills that come every month yet."}
               </p>

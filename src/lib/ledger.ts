@@ -38,7 +38,13 @@ export type Goal = { name: string; amount: number }
 /** A Helpful / Not helpful answer on a tip, with the numbers the tip was based on (training data for a future model). */
 export type TipVote = { id: string; kind: string; vote: 1 | -1; at: number; features: Record<string, number> }
 
-export type Data = { entries: Entry[]; budget: number; goal?: Goal; votes?: TipVote[] } // budget: centavos a month, 0 = not set
+/** Your answer on a bill Tally detected, by its item ("meralco"): it is one, or it isn't. Nothing is added either way. */
+export type BillDecision = "bill" | "not"
+
+export type Data = { entries: Entry[]; budget: number; goal?: Goal; votes?: TipVote[]; bills?: Record<string, BillDecision> } // budget: centavos a month, 0 = not set
+
+/** The items you said aren't bills: insights stop treating them as bills. */
+export const notBills = (data: Pick<Data, "bills">) => Object.keys(data.bills ?? {}).filter((item) => data.bills![item] === "not")
 
 export type Parsed = Pick<Entry, "amount" | "income" | "note" | "category">
 
@@ -363,8 +369,13 @@ export function mergeBackup(current: Data, file: unknown): { data: Data; added: 
   const budget = current.budget || (typeof b === "number" && Number.isInteger(b) && b > 0 ? b : 0)
   const goal = current.goal ?? (isGoal(incoming.goal) ? { name: incoming.goal.name, amount: incoming.goal.amount } : undefined)
   const votes = current.votes?.length ? current.votes : Array.isArray(incoming.votes) ? incoming.votes.filter(isVote) : []
+  // Bill answers merge by item, and the phone's answer wins, like entries.
+  const bills: Record<string, BillDecision> = {}
+  const theirs = incoming.bills && typeof incoming.bills === "object" ? (incoming.bills as Record<string, unknown>) : {}
+  for (const [item, d] of Object.entries(theirs)) if (d === "bill" || d === "not") bills[item] = d
+  Object.assign(bills, current.bills)
   return {
-    data: { entries: [...current.entries, ...added], budget, ...(goal ? { goal } : {}), ...(votes.length ? { votes } : {}) },
+    data: { entries: [...current.entries, ...added], budget, ...(goal ? { goal } : {}), ...(votes.length ? { votes } : {}), ...(Object.keys(bills).length ? { bills } : {}) },
     added: added.length,
     skipped,
   }

@@ -20,6 +20,7 @@ import {
   isSaving,
   monthOf,
   monthSummary,
+  notBills,
   parseLine,
   shiftDay,
   toDate,
@@ -61,7 +62,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   const month = monthSummary(data.entries, monthOf(today), data.budget, today)
   const day = toDate(date)
   // The line under the date speaks about the day showing: a plan for today, a verdict for a past day.
-  const brief = dayBrief(data.entries, data.budget, date, today)
+  const brief = dayBrief(data.entries, data.budget, date, today, notBills(data))
   const otherYear = day.getFullYear() !== toDate(today).getFullYear()
   const focus = () => input.current?.focus()
   const show = (next: string) => setPicked(next >= today ? null : next)

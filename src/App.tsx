@@ -12,7 +12,7 @@ import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
 import { Button } from "@/components/ui/button"
 import { addVote, describeOddAmount, tipFeatures, unusualAmount, type Tip } from "@/lib/insights"
-import { formatPeso, localDate, removeEntry, restoreEntry, type Data, type Entry, type Filter, type Removed } from "@/lib/ledger"
+import { formatPeso, localDate, removeEntry, restoreEntry, type BillDecision, type Data, type Entry, type Filter, type Removed } from "@/lib/ledger"
 import { exportBackup, exportCsv, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
 
 const TABS = [
@@ -33,6 +33,14 @@ function useToday() {
 
 // Clock readings happen out here, away from render.
 const keyed = <T,>(value: T) => ({ ...value, key: Date.now() })
+
+/** Sets or clears one answer; an empty map is dropped, so data without answers looks as it always did. */
+function billDecision(bills: Record<string, BillDecision> = {}, item: string, decision: BillDecision | null) {
+  const next = { ...bills }
+  if (decision) next[item] = decision
+  else delete next[item]
+  return Object.keys(next).length ? next : undefined
+}
 
 /**
  * A short message above the tab bar. A delete's carries what Undo puts back; an odd amount's carries the id Fix
@@ -200,7 +208,7 @@ export default function App() {
       </main>
       {tab === "insights" && (
         <main className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
-          <LazyInsights data={data} today={today} menu={menu} onEditBudget={() => open("budget")} onEditGoal={() => open("goal")} onVote={vote} />
+          <LazyInsights data={data} today={today} menu={menu} onEditBudget={() => open("budget")} onEditGoal={() => open("goal")} onVote={vote} onBill={(item, decision) => commit({ ...data, bills: billDecision(data.bills, item, decision) })} />
         </main>
       )}
 

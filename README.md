@@ -50,7 +50,9 @@ days left. It never tells you to cut money that's already spent.
 
 - **Priorities, in order:** don't run out before the month ends, cover the bills, keep a safety cushion of
   3 to 6 months of essentials, then goals, then habits.
-- **Your own numbers:** usual essentials per day, usual spending, bills that repeat. A tip that needs history
+- **Your own numbers:** usual essentials per day, usual spending, bills that repeat. Each detected bill asks
+  once whether it really is one (Insights → Bills that repeat). Nothing is ever added for you, and an item you
+  call "not a bill" stops counting as one in the forecast, safe-to-spend and tips. A tip that needs history
   waits until it exists.
 - **Income and savings come whenever.** Tally never asks for a salary or a saving plan; it learns from what you
   log.
