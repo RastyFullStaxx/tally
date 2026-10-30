@@ -61,14 +61,20 @@ export function saveTheme(theme: Theme) {
   }
 }
 
+// About what localStorage holds per site on the phones that matter (characters). ~39,000 entries.
+const CAPACITY = 5_000_000
+
+/** What reading the notebook found: the data, whether saved data was there but unreadable, and how full storage is. */
+export type Loaded = { data: Data; unreadable: boolean; fill: number }
+
 /** Reads the saved data. Unreadable data is copied aside under its own key first, never overwritten. */
-export function load(): Data {
+export function load(): Loaded {
   let raw: string | null = null
   try {
     raw = localStorage.getItem(KEY)
-    if (!raw) return { entries: [], budget: 0 }
+    if (!raw) return { data: { entries: [], budget: 0 }, unreadable: false, fill: 0 }
     const data = JSON.parse(raw) as Data
-    if (Array.isArray(data.entries) && typeof data.budget === "number") return data
+    if (Array.isArray(data.entries) && typeof data.budget === "number") return { data, unreadable: false, fill: raw.length / CAPACITY }
     throw new Error("Unexpected shape")
   } catch {
     try {
@@ -76,17 +82,18 @@ export function load(): Data {
     } catch {
       // Storage is full or blocked; the save banner will say so on the next change.
     }
-    return { entries: [], budget: 0 }
+    return { data: { entries: [], budget: 0 }, unreadable: raw !== null, fill: 0 }
   }
 }
 
-/** Saves everything. False when the phone refused (storage full or blocked). */
-export function save(data: Data): boolean {
+/** Saves everything. Returns how full storage now is (0 to 1), or null when the phone refused (full or blocked). */
+export function save(data: Data): number | null {
   try {
-    localStorage.setItem(KEY, JSON.stringify(data))
-    return true
+    const json = JSON.stringify(data)
+    localStorage.setItem(KEY, json)
+    return json.length / CAPACITY
   } catch {
-    return false
+    return null
   }
 }
 

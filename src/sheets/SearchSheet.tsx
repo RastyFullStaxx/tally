@@ -155,7 +155,7 @@ function Search({ entries, query, onQuery, filter, onFilter, onPick }: Omit<Prop
                   <button type="button" onClick={() => onPick(e)} className="flex h-9 w-full items-center gap-2 px-2 text-left text-sm transition-colors active:bg-foreground/[0.04]">
                     <span className="w-12 shrink-0 text-xs text-faint tabular-nums">{toDate(e.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" })}</span>
                     <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
-                    <CategoryChip category={e.category} label={labelOf(e)} />
+                    {e.note && <CategoryChip category={e.category} label={labelOf(e)} />}
                     <span className={cn("ml-auto shrink-0 font-medium tabular-nums", isIncome(e) && "text-income", isSaving(e) && "text-savings")}>
                       {isIncome(e) && "+"}
                       {formatPeso(e.amount)}

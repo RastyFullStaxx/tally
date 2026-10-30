@@ -19,7 +19,7 @@ import { useToday } from "@/hooks/useToday"
 import { formatPeso } from "@/lib/format"
 import { addVote, describeOddAmount, tipFeatures, unusualAmount, type Tip } from "@/lib/insights"
 import { removeEntry, restoreEntry, upsertEntry, withBill, type Filter } from "@/lib/ledger"
-import type { Entry } from "@/lib/model"
+import { isSaving, type Entry } from "@/lib/model"
 import { animateMascot, exportBackup, exportCsv, helpSeen, markHelpSeen, saveTheme, savedTheme, setAnimateMascot } from "@/lib/store"
 import { switchTheme, type Theme } from "@/lib/theme"
 
@@ -30,14 +30,14 @@ export default function App() {
   const today = useToday()
   const updates = useUpdates()
   const install = useInstall()
-  const { data, saved, commit } = useLedger()
+  const { data, saved, fill, unreadable, commit } = useLedger()
   const { notice, show, say, clear } = useNotice()
   const backup = useImport(data, commit, say)
   const [tab, setTab] = useState<Tab>("today")
   const [editing, setEditing] = useState<{ entry: Entry; key: number } | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   // A phone's first launch (nothing logged, never shown) opens How to use by itself. After that it's in ···.
-  const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(() => (data.entries.length === 0 && !helpSeen() ? { kind: "help", key: 0 } : null))
+  const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(() => (data.entries.length === 0 && !unreadable && !helpSeen() ? { kind: "help", key: 0 } : null))
   const [sheetOpen, setSheetOpen] = useState(() => sheet !== null)
   // Search keeps what was typed and the filter after it closes, so editing a result and coming back finds the same list.
   const [search, setSearch] = useState<{ open: boolean; query: string; filter: Filter }>({ open: false, query: "", filter: "all" })
@@ -57,6 +57,11 @@ export default function App() {
   // A new line (not an edit) whose amount is far off its usual is most likely a typo: say so, with Fix.
   const add = (entry: Entry) => {
     commit(upsertEntry(data, entry))
+    // Taking out more than was ever logged as saved: say so, rather than showing savings below zero.
+    if (isSaving(entry) && entry.income) {
+      const saved = data.entries.filter(isSaving).reduce((n, e) => n + (e.income ? -e.amount : e.amount), 0)
+      if (entry.amount > saved) return show({ text: `That's more than the ${formatPeso(Math.max(0, saved))} logged as saved.`, fix: entry.id }, 6000)
+    }
     const odd = unusualAmount(data.entries, entry)
     if (odd) show({ text: describeOddAmount(odd, entry.amount), fix: entry.id }, 6000)
   }
@@ -119,6 +124,18 @@ export default function App() {
       onFocusCapture={(event) => setTyping(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)}
       onBlurCapture={() => setTyping(false)}
     >
+      {unreadable && data.entries.length === 0 && (
+        <p role="alert" className="mx-3 mt-2 flex items-start gap-2 rounded-md bg-over/15 px-3 py-2 text-sm text-over">
+          <AlertIcon className="mt-0.5 size-4 shrink-0" />
+          Tally couldn't read the data saved on this phone. A copy is kept. To restore, use ··· → Import backup.
+        </p>
+      )}
+      {saved && fill >= 0.8 && (
+        <p role="alert" className="mx-3 mt-2 flex items-start gap-2 rounded-md bg-primary/15 px-3 py-2 text-sm text-primary">
+          <AlertIcon className="mt-0.5 size-4 shrink-0" />
+          Storage is {Math.round(fill * 100)}% full. Export a backup from the ··· menu.
+        </p>
+      )}
       {!saved && (
         <p role="alert" className="sticky top-[env(safe-area-inset-top)] z-30 mx-3 mt-2 flex items-center gap-2 rounded-md bg-over/15 px-3 py-2 text-sm text-over backdrop-blur-md">
           <AlertIcon className="size-4 shrink-0" />

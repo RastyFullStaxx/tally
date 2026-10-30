@@ -5,7 +5,7 @@ process.env.TZ = "Asia/Manila"
 import assert from "node:assert/strict"
 import test from "node:test"
 import { notBills, type Entry, type TipVote } from "../src/lib/model.ts"
-import { parseLine } from "../src/lib/parse.ts"
+import { missingAmountHint, parseAmount, parseLine } from "../src/lib/parse.ts"
 import { localDate, shiftDay, shiftMonth } from "../src/lib/dates.ts"
 import { formatPeso } from "../src/lib/format.ts"
 import { monthSummary, removeEntry, restoreEntry, searchEntries, totalsOf, upsertEntry, withBill } from "../src/lib/ledger.ts"
@@ -249,4 +249,19 @@ test("upsert replaces an entry in place or adds it; bill answers set, clear, and
   assert.deepEqual(withBill(answered, "meralco", "not").bills, { meralco: "not" })
   assert.equal("bills" in withBill(answered, "meralco", null), false)
   assert.equal(data.bills, undefined, "never mutates")
+})
+
+test("amounts: commas only between thousands, extra decimals rounded, a ceiling, and a hint that says what to type", () => {
+  assert.equal(parseAmount("1,250"), 125000)
+  assert.equal(parseAmount("1,250,000.50"), 125000050)
+  assert.equal(parseAmount("1,2,3"), null)
+  assert.equal(parseAmount("12,50"), null)
+  assert.equal(parseAmount("120.999"), 12100)
+  assert.equal(parseAmount("999999999"), 99999999900)
+  assert.equal(parseAmount("1000000000"), null, "past ₱999,999,999")
+  assert.equal(parseLine("coffee 1,2,3"), null)
+  assert.equal(missingAmountHint("-50 refund"), "For money back, use a plus: +50 refund")
+  assert.equal(missingAmountHint("save 100000000000"), "That's more than ₱999,999,999. Check the zeros.")
+  assert.equal(missingAmountHint("coffee 1,2,3"), "Commas go between thousands, like 1,250")
+  assert.equal(missingAmountHint("lunch"), "Add an amount, like coffee 120")
 })

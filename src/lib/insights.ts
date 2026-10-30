@@ -137,7 +137,8 @@ export function spendingPatterns(entries: Entry[], month: string, today: string)
     weekdayDays,
     weekendDays,
     busiest,
-    largest: expenses.length ? expenses.reduce((a, b) => (b.amount > a.amount ? b : a)) : null,
+    // A purchase, not a payment: bills are left out.
+    largest: expenses.filter((e) => e.category !== "bills").reduce<Entry | null>((a, b) => (!a || b.amount > a.amount ? b : a), null),
     noSpend,
   }
 }

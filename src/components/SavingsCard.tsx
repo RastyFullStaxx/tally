@@ -29,7 +29,7 @@ export function SavingsCard({ savings, onEditGoal }: { savings: Savings; onEditG
       ) : (
         <>
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">{formatPeso(savings.total)}</span>
+            <span className="text-[1.375rem] leading-tight font-semibold tracking-[-0.01em]">{formatPeso(Math.max(0, savings.total))}</span>
             <span className="text-xs text-muted-foreground tabular-nums">
               {savings.thisMonth ? `${savings.thisMonth > 0 ? "+" : ""}${formatPeso(savings.thisMonth)} this month` : "Nothing added this month"}
             </span>

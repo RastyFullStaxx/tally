@@ -6,43 +6,43 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    /* Apple's own SF Pro on iPhone and Mac (the system font). Everywhere else, Inter: the closest open
+  /* Apple's own SF Pro on iPhone and Mac (the system font). Everywhere else, Inter: the closest open
        lookalike, bundled because SF Pro's licence doesn't allow shipping it. */
-    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter Variable", "Segoe UI", system-ui, sans-serif;
-    --font-heading: var(--font-sans);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --color-raised: var(--raised);
-    --color-track: var(--track);
-    --color-faint: var(--faint);
-    --color-income: var(--income);
-    --color-savings: var(--cat-savings);
-    --color-over: var(--over);
-    --color-rule: var(--rule);
-    --color-margin: var(--margin);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter Variable", "Segoe UI", system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-raised: var(--raised);
+  --color-track: var(--track);
+  --color-faint: var(--faint);
+  --color-income: var(--income);
+  --color-savings: var(--cat-savings);
+  --color-over: var(--over);
+  --color-rule: var(--rule);
+  --color-margin: var(--margin);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 /* Navy is the default; `.light` on <html> (store.ts, set before first paint by index.html) switches to paper.
@@ -51,103 +51,103 @@
    neighbours apart for colourblind eyes. The light set keeps those hues and that order, darkened to >= 4.5:1
    on white cards. --ink is what tints mix toward: white on navy, near-black on paper. */
 :root {
-    color-scheme: dark;
-    --ink: white;
-    --background: #0b1426;
-    --foreground: #eef2fa;
-    --card: #111d35;
-    --card-foreground: #eef2fa;
-    --popover: #16243f;
-    --popover-foreground: #eef2fa;
-    --primary: #d8b56a;
-    --primary-foreground: #1a1405;
-    --secondary: #16243f;
-    --secondary-foreground: #eef2fa;
-    --muted: #16243f;
-    --muted-foreground: #8d9bb8;
-    --accent: #1e2d4d;
-    --accent-foreground: #eef2fa;
-    --destructive: #f08b7a;
-    --border: rgb(255 255 255 / 7%);
-    --input: rgb(255 255 255 / 10%);
-    --ring: #d8b56a;
-    --radius: 0.25rem;
+  color-scheme: dark;
+  --ink: white;
+  --background: #0b1426;
+  --foreground: #eef2fa;
+  --card: #111d35;
+  --card-foreground: #eef2fa;
+  --popover: #16243f;
+  --popover-foreground: #eef2fa;
+  --primary: #d8b56a;
+  --primary-foreground: #1a1405;
+  --secondary: #16243f;
+  --secondary-foreground: #eef2fa;
+  --muted: #16243f;
+  --muted-foreground: #8d9bb8;
+  --accent: #1e2d4d;
+  --accent-foreground: #eef2fa;
+  --destructive: #f08b7a;
+  --border: rgb(255 255 255 / 7%);
+  --input: rgb(255 255 255 / 10%);
+  --ring: #d8b56a;
+  --radius: 0.25rem;
 
-    --raised: #16243f;
-    --track: #1e2d4d;
-    --faint: #5d6c8a;
-    --income: #6fd3a8;
-    --over: #f08b7a;
-    --rule: rgb(148 170 214 / 9%);
-    --margin: rgb(216 181 106 / 30%);
+  --raised: #16243f;
+  --track: #1e2d4d;
+  --faint: #5d6c8a;
+  --income: #6fd3a8;
+  --over: #f08b7a;
+  --rule: rgb(148 170 214 / 9%);
+  --margin: rgb(216 181 106 / 30%);
 
-    --chart-spent: #b38e3a;
-    --chart-income: #0a9068;
-    --chart-pace: #5d6c8a;
+  --chart-spent: #b38e3a;
+  --chart-income: #0a9068;
+  --chart-pace: #5d6c8a;
 
-    --cat-food: #ce7a3b;
-    --cat-bills: #9881d9;
-    --cat-groceries: #65a556;
-    --cat-transport: #4d97de;
-    --cat-shopping: #cc6f9d;
-    --cat-leisure: #ab9017;
-    --cat-health: #02a6ad;
-    --cat-other: #8d9bb8;
-    --cat-income: #6fd3a8;
-    --cat-savings: #d4ec5c; /* lime: >=16 normal / >=14 CVD from every other colour on #111D35 */
+  --cat-food: #ce7a3b;
+  --cat-bills: #9881d9;
+  --cat-groceries: #65a556;
+  --cat-transport: #4d97de;
+  --cat-shopping: #cc6f9d;
+  --cat-leisure: #ab9017;
+  --cat-health: #02a6ad;
+  --cat-other: #8d9bb8;
+  --cat-income: #6fd3a8;
+  --cat-savings: #d4ec5c; /* lime: >=16 normal / >=14 CVD from every other colour on #111D35 */
 }
 
 :root.light {
-    color-scheme: light;
-    --ink: #1a2236;
-    --background: #f6f3ec;
-    --foreground: #1a2236;
-    --card: #ffffff;
-    --card-foreground: #1a2236;
-    --popover: #ffffff;
-    --popover-foreground: #1a2236;
-    --primary: #8a6519;
-    --primary-foreground: #ffffff;
-    --secondary: #ece6d8;
-    --secondary-foreground: #1a2236;
-    --muted: #efeae0;
-    --muted-foreground: #566074;
-    --accent: #e6dfcf;
-    --accent-foreground: #1a2236;
-    --destructive: #c03a26;
-    --border: rgb(26 34 54 / 10%);
-    --input: rgb(26 34 54 / 14%);
-    --ring: #8a6519;
+  color-scheme: light;
+  --ink: #1a2236;
+  --background: #f6f3ec;
+  --foreground: #1a2236;
+  --card: #ffffff;
+  --card-foreground: #1a2236;
+  --popover: #ffffff;
+  --popover-foreground: #1a2236;
+  --primary: #8a6519;
+  --primary-foreground: #ffffff;
+  --secondary: #ece6d8;
+  --secondary-foreground: #1a2236;
+  --muted: #efeae0;
+  --muted-foreground: #566074;
+  --accent: #e6dfcf;
+  --accent-foreground: #1a2236;
+  --destructive: #c03a26;
+  --border: rgb(26 34 54 / 10%);
+  --input: rgb(26 34 54 / 14%);
+  --ring: #8a6519;
 
-    --raised: #ffffff;
-    --track: #e6e0d2;
-    --faint: #7d869a;
-    --income: #0d7550;
-    --over: #c03a26;
-    --rule: rgb(26 34 54 / 8%);
-    --margin: rgb(138 101 25 / 30%);
+  --raised: #ffffff;
+  --track: #e6e0d2;
+  --faint: #7d869a;
+  --income: #0d7550;
+  --over: #c03a26;
+  --rule: rgb(26 34 54 / 8%);
+  --margin: rgb(138 101 25 / 30%);
 
-    --chart-spent: #b38e3a;
-    --chart-income: #0a9068;
-    --chart-pace: #7d869a;
+  --chart-spent: #b38e3a;
+  --chart-income: #0a9068;
+  --chart-pace: #7d869a;
 
-    --cat-food: #b0602a;
-    --cat-bills: #7258c2;
-    --cat-groceries: #47833a;
-    --cat-transport: #2b72b8;
-    --cat-shopping: #ad4a7a;
-    --cat-leisure: #806b0c;
-    --cat-health: #007a80;
-    --cat-other: #646d80;
-    --cat-income: #0d7550;
-    --cat-savings: #5f7a00;
+  --cat-food: #b0602a;
+  --cat-bills: #7258c2;
+  --cat-groceries: #47833a;
+  --cat-transport: #2b72b8;
+  --cat-shopping: #ad4a7a;
+  --cat-leisure: #806b0c;
+  --cat-health: #007a80;
+  --cat-other: #646d80;
+  --cat-income: #0d7550;
+  --cat-savings: #5f7a00;
 }
 
 /* The theme switch: the new theme grows as a circle from where it was tapped (store.ts drives the clip). */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-    animation: none;
-    mix-blend-mode: normal;
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 @layer base {
@@ -169,8 +169,19 @@
 }
 
 /* Sprite strips move inside a fixed frame; layout never animates. */
-.tally-strip { display: block; max-width: none; object-fit: fill; }
-@keyframes tally-frames { to { transform: translateX(-100%); } }
+.tally-strip {
+  display: block;
+  max-width: none;
+  object-fit: fill;
+}
+@keyframes tally-frames {
+  to {
+    transform: translateX(-100%);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .tally-strip { animation: none !important; transform: none !important; }
+  .tally-strip {
+    animation: none !important;
+    transform: none !important;
+  }
 }

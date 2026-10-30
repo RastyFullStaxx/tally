@@ -1,6 +1,6 @@
 import { Mascot } from "@/components/Mascot"
 
-import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
+import { useDeferredValue, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { cn } from "cn"
 
 import { CalendarSheet } from "@/sheets/CalendarSheet"
@@ -12,9 +12,9 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } f
 import { predictCategory, trainCategoryModel } from "@/lib/classifier"
 import { dayBrief } from "@/lib/insights"
 import { CATEGORIES, isExpense, isIncome, isSaving, notBills, type CategoryId, type Data, type Entry } from "@/lib/model"
-import { parseLine, type Parsed } from "@/lib/parse"
+import { BIG_AMOUNT, missingAmountHint, parseLine, type Parsed } from "@/lib/parse"
 import { monthOf, shiftDay, toDate } from "@/lib/dates"
-import { formatPeso, formatPesoWhole } from "@/lib/format"
+import { formatPeso, formatPesoShort, formatPesoWhole } from "@/lib/format"
 import { monthSummary } from "@/lib/ledger"
 
 type Props = { data: Data; today: string; menu: ReactNode; onAdd: (entry: Entry) => void; onEdit: (entry: Entry) => void; onEditBudget: () => void }
@@ -32,7 +32,9 @@ const CHIP = "flex shrink-0 items-center gap-1 rounded-sm border border-dashed b
 export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props) {
   const [picked, setPicked] = useState<string | null>(null)
   const [text, setText] = useState("")
-  const [needsAmount, setNeedsAmount] = useState(false)
+  // Why the line can't be saved yet: no usable amount, or a very large one waiting for a second return.
+  const [hint, setHint] = useState<string | null>(null)
+  const [confirmed, setConfirmed] = useState<string | null>(null)
   // The line whose category is being picked from its chip. Kept while the sheet slides away.
   const [line, setLine] = useState<Parsed | null>(null)
   const [picking, setPicking] = useState(false)
@@ -40,7 +42,9 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   const [calendar, setCalendar] = useState({ open: false, key: 0 })
   const input = useRef<HTMLInputElement>(null)
   // Retrained whenever entries change, so every save and every corrected category teaches the next guess.
-  const model = useMemo(() => trainCategoryModel(data.entries), [data.entries])
+  // Deferred: a saved line shows at once, and retraining happens in a low-priority render right after.
+  const learned = useDeferredValue(data.entries)
+  const model = useMemo(() => trainCategoryModel(learned), [learned])
 
   const date = picked && picked < today ? picked : today
   const preview = text.trim() ? parseLine(text, (note, amount) => predictCategory(model, note, amount).category) : null
@@ -60,12 +64,18 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
     event.preventDefault()
     if (!text.trim()) return
     if (!preview) {
-      setNeedsAmount(true)
+      setHint(missingAmountHint(text))
+      return
+    }
+    // A very large amount is usually a typo: the first return asks, the second saves.
+    if (preview.amount > BIG_AMOUNT && confirmed !== text) {
+      setConfirmed(text)
+      setHint(`${formatPeso(preview.amount)} is a lot. Press return again to save it.`)
       return
     }
     // Clear and keep focus first, so the keyboard stays up for the next line.
     setText("")
-    setNeedsAmount(false)
+    setHint(null)
     focus()
     onAdd(stamp(preview, date))
   }
@@ -75,7 +85,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
     if (!line) return
     setPicking(false)
     setText("")
-    setNeedsAmount(false)
+    setHint(null)
     onAdd(stamp({ ...line, category }, date))
   }
 
@@ -140,9 +150,10 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
           <PencilIcon className="mt-px size-3.5 shrink-0 text-faint" />
         </button>
       ) : (
-        <p className="flex items-center gap-1 pr-4 pb-2 pl-8 text-xs text-muted-foreground">
-          {formatPeso(monthSpent)} spent this month ·
-          <button type="button" onClick={onEditBudget} className="text-primary">
+        <p className="flex flex-wrap items-center gap-x-1 pr-4 pb-2 pl-8 text-xs text-muted-foreground">
+          {/* Short above ₱100,000, so "Set a budget" stays on the line on a narrow phone. */}
+          <span>{monthSpent >= 10_000_000 ? formatPesoShort(monthSpent) : formatPeso(monthSpent)} spent this month ·</span>
+          <button type="button" onClick={onEditBudget} className="whitespace-nowrap text-primary">
             Set a budget
           </button>
         </p>
@@ -157,7 +168,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
             value={text}
             onChange={(e) => {
               setText(e.target.value)
-              setNeedsAmount(false)
+              setHint(null)
             }}
             aria-label={date === today ? "New entry for today" : `New entry for ${day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}`}
             placeholder="coffee 120 · +25000 salary"
@@ -194,9 +205,9 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
             ))}
         </form>
 
-        {needsAmount && (
+        {hint && (
           <p role="alert" className="border-b border-rule py-2 pr-4 pl-8 text-sm text-over">
-            Add an amount, like coffee 120
+            {hint}
           </p>
         )}
 
@@ -205,7 +216,8 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
             <li key={e.id} className="border-b border-rule transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none starting:-translate-y-1.5 starting:opacity-0">
               <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-foreground/[0.04]">
                 <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
-                <CategoryChip category={e.category} label={labelOf(e)} />
+                {/* A line without a note already shows its label. */}
+                {e.note && <CategoryChip category={e.category} label={labelOf(e)} />}
                 <span className={cn("ml-auto shrink-0 font-medium tabular-nums", isIncome(e) && "text-income", isSaving(e) && "text-savings")}>
                   {isIncome(e) && "+"}
                   {formatPeso(e.amount)}

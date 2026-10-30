@@ -7,7 +7,7 @@ import { importBackup } from "@/lib/store"
  * ··· → Import backup: a hidden file input, one import at a time, and a moment of success for the cat to show.
  * Merging is `mergeBackup`'s job; this only reads the file, commits the result and says how it went.
  */
-export function useImport(data: Data, commit: (next: Data) => boolean, say: (text: string) => void) {
+export function useImport(data: Data, commit: (next: Data) => void, say: (text: string) => void) {
   const input = useRef<HTMLInputElement>(null)
   const busy = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -24,11 +24,10 @@ export function useImport(data: Data, commit: (next: Data) => boolean, say: (tex
     setSucceeded(false)
     try {
       const { data: merged, added, skipped } = await importBackup(file, data)
-      if (commit(merged)) {
-        setSucceeded(true)
-        if (timer.current) clearTimeout(timer.current)
-        timer.current = setTimeout(() => setSucceeded(false), 1000)
-      }
+      commit(merged)
+      setSucceeded(true)
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = setTimeout(() => setSucceeded(false), 1000)
       say(`Imported ${added} ${added === 1 ? "entry" : "entries"}${skipped ? `, skipped ${skipped} unreadable` : ""}.`)
     } catch (error) {
       say((error as Error).message)

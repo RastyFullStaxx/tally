@@ -25,7 +25,14 @@ const WITHDRAW_WORDS = new Set("withdraw withdrew".split(" "))
 // Joining words left out of a savings note: "2000 to savings" needs none, "ipon para sa laptop" is "laptop".
 const SAVING_FILLER = new Set("to into in from for my the put move moved transfer transferred add added deposit deposited sa para ng nag mag ko".split(" "))
 
-const AMOUNT = /^\+?(?:₱|php|p)?(\d[\d,]*(?:\.\d{1,2})?)(k?)$/i
+// Commas only where thousands go ("1,250", not "1,2,3"); any decimals, rounded to centavos.
+const AMOUNT = /^\+?(?:₱|php|p)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(k?)$/i
+
+/** The largest amount a line can hold: ₱999,999,999. Past that it's a typo, and money stops being exact. */
+export const MAX_AMOUNT = 99_999_999_900
+
+/** Over this (₱1,000,000), a line asks before it's saved. */
+export const BIG_AMOUNT = 100_000_000
 
 export const wordsOf = (note: string) =>
   note
@@ -34,12 +41,20 @@ export const wordsOf = (note: string) =>
     .map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""))
     .filter(Boolean)
 
-/** "1,250.50" → 125050, "p150" → 15000, "25k" → 2500000; anything else → null. */
+/** "1,250.50" → 125050, "p150" → 15000, "25k" → 2500000, "120.999" → 12100; anything else, or past the maximum → null. */
 export function parseAmount(word: string): number | null {
   const m = AMOUNT.exec(word.trim())
   if (!m) return null
-  const centavos = Math.round(Number(m[1].replace(/,/g, "")) * (m[2] ? 1000 : 1) * 100)
-  return centavos > 0 ? centavos : null
+  const centavos = Math.round(Number(`${m[1].replace(/,/g, "")}.${m[2] ?? "0"}`) * (m[3] ? 1000 : 1) * 100)
+  return centavos > 0 && centavos <= MAX_AMOUNT ? centavos : null
+}
+
+/** Why a line has no amount Tally can use, in words that say what to type instead. */
+export function missingAmountHint(text: string): string {
+  if (/(^|\s)-\s*\d/.test(text)) return "For money back, use a plus: +50 refund"
+  if (/\d{10,}|\d{1,3}(,\d{3}){3,}/.test(text.replace(/\.\d*/g, ""))) return "That's more than ₱999,999,999. Check the zeros."
+  if (/\d,\d{1,2}(?!\d)/.test(text)) return "Commas go between thousands, like 1,250"
+  return "Add an amount, like coffee 120"
 }
 
 /** The built-in guess: the first category whose keywords appear in the note, else Other. */
