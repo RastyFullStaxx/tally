@@ -88,6 +88,7 @@ npm run dev        # http://localhost:5173
 npm test           # parsing, dates, totals, insights, the category model, backup restore
 npm run eval:classifier  # how often the category guess is right, on synthetic notebooks
 npm run eval:forecast    # how far the month-end forecast misses, on synthetic months
+npm run e2e        # after a build: the main flows in a real browser at iPhone size (needs Playwright, see the script)
 npm run icons      # regenerate src/components/icons.tsx (MingCute icons, fetched with better-icons)
 npm run build      # type-check, then build to dist/ with the offline service worker
 npm run preview    # serve dist/ the way the phone will get it
