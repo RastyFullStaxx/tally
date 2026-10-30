@@ -5,6 +5,10 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Search and filter. The magnifier at the top of both screens finds entries from any month
+  by part of a note, a category name or an exact amount, with category chips (Income and Savings
+  included), totals for what matched, and results by month with each month's spending. Tapping a result
+  opens it for editing; the search is kept for when you come back.
 - 2026-10-30: Undo after delete. Deleting an entry shows "Deleted <note> · ₱<amount>" with Undo for 5 seconds,
   which puts it back with the same id in the same place. The notice area is now a live region that
   stays mounted, so screen readers announce every notice.
@@ -14,21 +18,12 @@ production and only the owner merges into it.
 
 ## In progress
 
-- **Search and filter entries** (`rasty/tally-search`, started 2026-10-30 14:05 UTC)
-  - [ ] `searchEntries(entries, query, filter)` and `totalsOf(entries)` in `ledger.ts`: every typed word
-        must match the note (substring, accents ignored), the category name (prefix) or the amount
-        (`245`, `₱245`, `1,250`, `1k`); newest first
-  - [ ] Tests in `tests/ledger.test.ts`
-  - [ ] `SearchIcon`, `CloseIcon` in `scripts/icons.mjs` and `icons.tsx` (MingCute `search-line`,
-        `close-line`; api.iconify.design is blocked here, so bodies come from `@iconify-json/mingcute`)
-  - [ ] `SearchSheet.tsx`: input with clear, filter chips (All, 8 categories, Income, Savings), totals
-        line, results grouped by month with the month's spending, 36px rows, newest 150 rows shown
-  - [ ] Search button in the Today header; tapping a result closes search and opens the edit drawer;
-        the query and filter survive, so reopening search returns to the same results
-  - [ ] README + How to use mention it; gate; browser check at phone width; merge
+- Nothing.
 
 ## Next up (ranked)
 
+1. **Today's header at 320px.** On a past day, "Today" plus ‹ › ··· leave the date too little room on a
+   320px-wide phone (iPhone SE, 1st gen): it wraps and the Today button overlaps it. 375px and up are fine.
 2. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
    backend; data ownership; merging with `tally:v1`; why the origin never changes. Then an
    `AuthProvider`/`SyncAdapter` seam with a local no-op default and a flagged-off sign-in screen.
@@ -44,5 +39,8 @@ production and only the owner merges into it.
 
 ## Owner decisions
 
-- None waiting yet. Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
+- **Merged branches to delete on GitHub:** `rasty/tally-undo-delete` (and `rasty/tally-search` if it is
+  still listed). Both are fully merged into `rasty/tally-next`; this environment's git proxy drops
+  branch deletions, so they couldn't be removed from here.
+- No product decisions waiting yet. Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
   will be asked here before either is built.

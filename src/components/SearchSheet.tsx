@@ -3,7 +3,7 @@ import { Mascot } from "@/components/Mascot"
 import { useDeferredValue, useMemo, useRef, type FormEvent } from "react"
 import { cn } from "cn"
 
-import { CATEGORY_ORDER, CategoryChip, categoryColor } from "@/components/category"
+import { CATEGORY_ORDER, CategoryChip, categoryColor, labelOf } from "@/components/category"
 import { CloseIcon, SearchIcon } from "@/components/icons"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
@@ -25,8 +25,6 @@ const FILTERS: Filter[] = ["all", ...CATEGORY_ORDER, "income", "savings"]
 
 // Rows drawn at once. The totals still count every match; typing more narrows it to older ones.
 const LIMIT = 150
-
-const labelOf = (e: Entry) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
 
 /** Every entry ever logged, found by what you wrote, the category or the amount. Opened from the top of both screens. */
 export function SearchSheet({ open, onOpenChange, ...search }: Props) {
