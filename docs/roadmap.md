@@ -18,12 +18,15 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **Today's header on narrow phones** (`rasty/tally-narrow-header`, started 2026-10-30 14:40 UTC)
+  - [ ] Measured: on a past day, "30 September" wraps to two lines at 390px and below, and at 320px the
+        Today button overlaps it
+  - [ ] The date never wraps: the title box is a size container and the month goes short ("30 Sept") when
+        it is under 11rem; the chevron hides under 6.5rem; the aria-label keeps the full date
+  - [ ] Check 320, 340, 360, 375, 390, 430 on today and on a past day; gate; merge
 
 ## Next up (ranked)
 
-1. **Today's header at 320px.** On a past day, "Today" plus ‹ › ··· leave the date too little room on a
-   320px-wide phone (iPhone SE, 1st gen): it wraps and the Today button overlaps it. 375px and up are fine.
 2. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
    backend; data ownership; merging with `tally:v1`; why the origin never changes. Then an
    `AuthProvider`/`SyncAdapter` seam with a local no-op default and a flagged-off sign-in screen.
