@@ -5,7 +5,8 @@ import { AppMenu, useInstall, useUpdates, type Sheet } from "@/components/AppMen
 import { EntryDrawer } from "@/components/EntryDrawer"
 import { AlertIcon, ChartIcon, NotebookIcon } from "@/components/icons"
 import { AnimatedTally } from "@/components/AnimatedTally"
-import { Insights } from "@/components/Insights"
+import { loadInsights, preloadInsightsWhenIdle } from "@/components/insights-chunk"
+import { LazyInsights } from "@/components/LazyInsights"
 import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
 import { addVote, tipFeatures, type Tip } from "@/lib/insights"
@@ -54,6 +55,7 @@ export default function App() {
     try { return localStorage.getItem("tally:animate-mascot") !== "off" } catch { return false }
   })
   useEffect(() => () => { if (successTimer.current) clearTimeout(successTimer.current) }, [])
+  useEffect(preloadInsightsWhenIdle, [])
   const toggleAnimation = () => {
     const next = !animateTally
     setAnimateTally(next)
@@ -140,13 +142,13 @@ export default function App() {
         />
       </div>
 
-      {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts) only exists while open. */}
+      {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts, a separate chunk) only exists while open. */}
       <main hidden={tab !== "today"} className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
         <Today data={data} today={today} menu={menu} onAdd={upsert} onEdit={edit} onEditBudget={() => open("budget")} />
       </main>
       {tab === "insights" && (
         <main className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
-          <Insights data={data} today={today} menu={menu} onEditBudget={() => open("budget")} onEditGoal={() => open("goal")} onVote={vote} />
+          <LazyInsights data={data} today={today} menu={menu} onEditBudget={() => open("budget")} onEditGoal={() => open("goal")} onVote={vote} />
         </main>
       )}
 
@@ -157,6 +159,8 @@ export default function App() {
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
+              // A touch lands before the click, which gives the chunk a head start if idle preloading hasn't run.
+              onPointerDown={t.id === "insights" ? () => void loadInsights().catch(() => {}) : undefined}
               aria-current={tab === t.id ? "page" : undefined}
               className={cn(
                 "flex h-11 items-center justify-center gap-1.5 border-t-2 text-[13px] font-medium transition-colors duration-150",
