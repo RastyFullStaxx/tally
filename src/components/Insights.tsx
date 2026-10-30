@@ -12,7 +12,8 @@ import { TONE, Tips } from "@/components/Tips"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { advise, categoryDetail, incomeProfile, recurringBills, safeToSpend, savingsSummary, spendingPatterns, type Tip } from "@/lib/insights"
+import { advise } from "@/lib/advice"
+import { categoryDetail, incomeProfile, recurringBills, safeToSpend, savingsSummary, spendingPatterns, type Tip } from "@/lib/insights"
 import { CATEGORIES, formatPeso, formatPesoWhole, lastMonths, monthName, monthOf, monthSummary, notBills, shiftMonth, toDate, type BillDecision, type Data } from "@/lib/ledger"
 
 type Props = {
