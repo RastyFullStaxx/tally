@@ -11,7 +11,13 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **Undo after delete** (`rasty/tally-undo-delete`, started 2026-10-30 13:45 UTC)
+  - [ ] `removeEntry` / `restoreEntry` in `ledger.ts`: restore puts the entry back with the same id at
+        its old position, and does nothing if that id is already there
+  - [ ] Tests for both in `tests/ledger.test.ts`
+  - [ ] Notice in `App.tsx` carries an optional action: "Deleted <note> · ₱<amount>" with Undo for 5 s,
+        tap target 44px, newest notice replaces the older one
+  - [ ] Gate (`npm ci`, test, lint, build), check in the browser at phone width, merge into `rasty/tally-next`
 
 ## Next up (ranked)
 
