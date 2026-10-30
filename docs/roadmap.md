@@ -21,7 +21,12 @@ production and only the owner merges into it.
 
 ## In progress
 
-- Nothing.
+- **CSV export** (`rasty/tally-csv-export`, started 2026-10-30 14:55 UTC)
+  - [ ] `toCsv(entries)` in `ledger.ts`: Date, Type, Category, Note, Amount; oldest first; RFC 4180 quoting,
+        CRLF, a UTF-8 BOM so Excel reads ₱ and ñ, and a leading `'` on notes that start like a formula
+  - [ ] Tests in `tests/ledger.test.ts`
+  - [ ] `store.ts`: one share-or-download helper for both exports; `exportCsv(data)`
+  - [ ] ··· menu: "Export for spreadsheets" under Export backup; README; gate; check the file in the browser; merge
 
 ## Next up (ranked)
 
@@ -31,7 +36,6 @@ production and only the owner merges into it.
 2. **Confirm detected bills.** `recurringBills()` finds them; let the user confirm or dismiss each one.
    Detected bills are never added on their own. (Storing confirmations changes the data format, so
    see Owner decisions.)
-3. **CSV export** next to the JSON backup, for spreadsheets.
 4. **Category prediction quality.** Measure the Naive Bayes model's held-out accuracy on synthetic and
    real-shaped entries, and compare a kNN over merchant text before changing anything.
 5. **Anomaly flags and a seasonality-aware forecast** in `insights.ts`, advising only on the days ahead.
