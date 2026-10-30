@@ -5,7 +5,6 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import {
   addVote,
-  advise,
   categoryDetail,
   dayBrief,
   describeOddAmount,
@@ -17,8 +16,8 @@ import {
   spendingPatterns,
   unusualAmount,
   unusualWeeks,
-  usualMonth,
 } from "../src/lib/insights.ts"
+import { advise, usualMonth } from "../src/lib/advice.ts"
 import { shiftDay, type Entry, type TipVote } from "../src/lib/ledger.ts"
 
 let seq = 0

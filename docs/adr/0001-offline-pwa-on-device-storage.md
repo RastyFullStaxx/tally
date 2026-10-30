@@ -26,7 +26,7 @@ Tally is a progressive web app, installed from Safari with Add to Home Screen.
   - Dates are the phone's local `YYYY-MM-DD`.
 - **No backend.** There are no accounts and no sync.
 - **Backups.** Export and Import write and read a JSON file through the share sheet (Save to Files).
-- **Spending tips.** They are worked out on the phone from rules over the user's own entries (`advise()`, now in `src/lib/insights.ts`; what learns on the phone is in ADR 0002). No AI service is involved, so they work offline and send nothing anywhere.
+- **Spending tips.** They are worked out on the phone from rules over the user's own entries (`advise()`, now in `src/lib/advice.ts`; what learns on the phone is in ADR 0002). No AI service is involved, so they work offline and send nothing anywhere.
 
 ## Consequences
 
