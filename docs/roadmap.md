@@ -3,6 +3,9 @@
 Work lands on `rasty/tally-next`, one feature branch (`rasty/tally-<feature>`) at a time. `main` is
 production and only the owner merges into it.
 
+When working in an interactive session (not the hourly routine), feature branches stay local: only
+`rasty/tally-next` is pushed, so finished work doesn't leave branches behind on GitHub.
+
 ## Shipped (on rasty/tally-next)
 
 - 2026-10-30: A likely typo in an amount is caught as it's logged. When a new line is far off what the same
@@ -48,10 +51,10 @@ production and only the owner merges into it.
 
 ## Owner decisions
 
-- **Merged branches to delete on GitHub:** `rasty/tally-undo-delete`, `rasty/tally-search`,
-  `rasty/tally-narrow-header`, `rasty/tally-csv-export`,
-  `rasty/tally-accounts-seam` and `rasty/tally-classifier-eval`. All are fully merged into `rasty/tally-next`; this environment's git proxy drops
-  branch deletions, so they couldn't be removed from here.
+- **Merged branches to delete on GitHub.** Each is squashed into `rasty/tally-next` (checked file by file), so
+  deleting them loses nothing. This environment's git proxy refuses branch deletions (HTTP 403), so run, from
+  a clone of the repo:
+  `git push origin --delete rasty/tally-undo-delete rasty/tally-search rasty/tally-narrow-header rasty/tally-csv-export rasty/tally-accounts-seam rasty/tally-classifier-eval rasty/tally-odd-amounts`
 - **Accounts and sync (ADR 0003).** First, try Google sign-in in the installed app on the iPhone (Supabase's
   PKCE redirect and Google Identity Services). Then pick the provider (recommended: Supabase, encrypted,
   over plain `fetch`), say yes or no to the format change (tombstones and settings stamps in `tally:v1`),
