@@ -3,14 +3,16 @@ import { cn } from "cn"
 
 import { AppMenu, useInstall, useUpdates, type Sheet } from "@/components/AppMenu"
 import { EntryDrawer } from "@/components/EntryDrawer"
-import { AlertIcon, ChartIcon, NotebookIcon } from "@/components/icons"
+import { AlertIcon, ChartIcon, NotebookIcon, SearchIcon } from "@/components/icons"
 import { AnimatedTally } from "@/components/AnimatedTally"
 import { loadInsights, preloadInsightsWhenIdle } from "@/components/insights-chunk"
 import { LazyInsights } from "@/components/LazyInsights"
+import { SearchSheet } from "@/components/SearchSheet"
 import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
+import { Button } from "@/components/ui/button"
 import { addVote, tipFeatures, type Tip } from "@/lib/insights"
-import { formatPeso, localDate, removeEntry, restoreEntry, type Data, type Entry, type Removed } from "@/lib/ledger"
+import { formatPeso, localDate, removeEntry, restoreEntry, type Data, type Entry, type Filter, type Removed } from "@/lib/ledger"
 import { exportBackup, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
 
 const TABS = [
@@ -48,6 +50,8 @@ export default function App() {
   const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(() => (data.entries.length === 0 && !helpSeen() ? { kind: "help", key: 0 } : null))
   const [sheetOpen, setSheetOpen] = useState(() => sheet !== null)
   const [notice, setNotice] = useState<Notice | null>(null)
+  // Search keeps what was typed and the filter after it closes, so editing a result and coming back finds the same list.
+  const [search, setSearch] = useState<{ open: boolean; query: string; filter: Filter }>({ open: false, query: "", filter: "all" })
   const fileInput = useRef<HTMLInputElement>(null)
   const [typing, setTyping] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -155,14 +159,18 @@ export default function App() {
         )}
       </div>
 
-      <div className="px-3 pt-1">
+      {/* Search sits up here, on both screens, where it doesn't crowd the date on a narrow phone. */}
+      <div className="flex items-center justify-between gap-2 pt-1 pr-2 pl-3">
         <AnimatedTally
           key={importing || updates.checking || updates.downloading ? "working" : importSuccess ? "success" : "idle"}
           activity={importing || updates.checking || updates.downloading ? "working" : importSuccess ? "success" : "idle"}
           statusText={importing ? "Importing backup…" : updates.downloading ? "Downloading update…" : updates.checking ? (updates.ready ? "Applying update…" : "Checking updates…") : importSuccess ? "Backup imported." : updates.ready ? "Update ready." : ""}
-          paused={typing || sheetOpen || drawerOpen}
+          paused={typing || sheetOpen || drawerOpen || search.open}
           enabled={animateTally}
         />
+        <Button variant="ghost" size="icon-lg" aria-label="Search entries" aria-haspopup="dialog" onClick={() => setSearch((s) => ({ ...s, open: true }))}>
+          <SearchIcon className="size-4" />
+        </Button>
       </div>
 
       {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts, a separate chunk) only exists while open. */}
@@ -198,6 +206,19 @@ export default function App() {
       </nav>
 
       <input ref={fileInput} type="file" accept="application/json,.json" className="sr-only" tabIndex={-1} aria-hidden onChange={handleImport} />
+      <SearchSheet
+        open={search.open}
+        onOpenChange={(open) => setSearch((s) => ({ ...s, open }))}
+        entries={data.entries}
+        query={search.query}
+        onQuery={(query) => setSearch((s) => ({ ...s, query }))}
+        filter={search.filter}
+        onFilter={(filter) => setSearch((s) => ({ ...s, filter }))}
+        onPick={(entry) => {
+          setSearch((s) => ({ ...s, open: false }))
+          edit(entry)
+        }}
+      />
       <EntryDrawer editing={editing} open={drawerOpen} onOpenChange={setDrawerOpen} onSave={upsert} onDelete={remove} />
       <Sheets
         sheet={sheet}

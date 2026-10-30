@@ -1,11 +1,14 @@
 import { cn } from "cn"
 
-import { CATEGORIES, type CategoryId } from "@/lib/ledger"
+import { CATEGORIES, isSaving, type CategoryId, type Entry } from "@/lib/ledger"
 
 // The order the validator passed on navy: neighbours stay distinct for colourblind eyes (worst ΔE 10.4).
 export const CATEGORY_ORDER: CategoryId[] = ["food", "bills", "groceries", "transport", "shopping", "leisure", "health", "other"]
 
 export const categoryColor = (category: CategoryId) => `var(--cat-${category})`
+
+/** A line's label: savings say which way the money moved. */
+export const labelOf = (e: Pick<Entry, "category" | "income">) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : CATEGORIES[e.category])
 
 export function CategoryChip({ category, label, className }: { category: CategoryId; label?: string; className?: string }) {
   const color = categoryColor(category)

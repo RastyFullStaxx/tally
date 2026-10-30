@@ -232,6 +232,40 @@ export function lastMonths(entries: Entry[], month: string, n = 6) {
   })
 }
 
+/** A search's category filter: one category (Income and Savings included), or everything. */
+export type Filter = "all" | CategoryId
+
+// Lowercase without accents, so "pina" finds "piña".
+const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
+
+/** One typed word against one entry: part of the note, the start of the category's name, or the exact amount. */
+function matches(e: Entry, word: string) {
+  if (fold(e.note).includes(word) || fold(CATEGORIES[e.category]).startsWith(word)) return true
+  const amount = parseAmount(word)
+  return amount !== null && amount === e.amount
+}
+
+/** Entries in the filter where every word typed matches ("jolli", "grab office", "245", "food"), newest first. */
+export function searchEntries(entries: Entry[], query: string, filter: Filter = "all"): Entry[] {
+  const words = wordsOf(fold(query))
+  return entries
+    .filter((e) => (filter === "all" || e.category === filter) && words.every((w) => matches(e, w)))
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
+}
+
+/** What a set of entries adds up to: spending, income, and what went into savings net of withdrawals. */
+export function totalsOf(entries: Entry[]) {
+  let spent = 0
+  let income = 0
+  let saved = 0
+  for (const e of entries) {
+    if (isSaving(e)) saved += e.income ? -e.amount : e.amount
+    else if (e.income) income += e.amount
+    else spent += e.amount
+  }
+  return { spent, income, saved }
+}
+
 /** What a delete took out and where it sat, so Undo can put it back exactly. */
 export type Removed = { entry: Entry; index: number }
 

@@ -5,6 +5,10 @@ production and only the owner merges into it.
 
 ## Shipped (on rasty/tally-next)
 
+- 2026-10-30: Search and filter. The magnifier at the top of both screens finds entries from any month
+  by part of a note, a category name or an exact amount, with category chips (Income and Savings
+  included), totals for what matched, and results by month with each month's spending. Tapping a result
+  opens it for editing; the search is kept for when you come back.
 - 2026-10-30: Undo after delete. Deleting an entry shows "Deleted <note> · ₱<amount>" with Undo for 5 seconds,
   which puts it back with the same id in the same place. The notice area is now a live region that
   stays mounted, so screen readers announce every notice.
@@ -18,8 +22,8 @@ production and only the owner merges into it.
 
 ## Next up (ranked)
 
-1. **Search and filter entries.** Find a merchant or note across months, filter by category, and tap a
-   result to edit it.
+1. **Today's header at 320px.** On a past day, "Today" plus ‹ › ··· leave the date too little room on a
+   320px-wide phone (iPhone SE, 1st gen): it wraps and the Today button overlaps it. 375px and up are fine.
 2. **ADR 0003, accounts and sync (prepared, off).** Compare Supabase, Firebase, and Auth.js with a small
    backend; data ownership; merging with `tally:v1`; why the origin never changes. Then an
    `AuthProvider`/`SyncAdapter` seam with a local no-op default and a flagged-off sign-in screen.
@@ -35,5 +39,8 @@ production and only the owner merges into it.
 
 ## Owner decisions
 
-- None waiting yet. Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
+- **Merged branches to delete on GitHub:** `rasty/tally-undo-delete` (and `rasty/tally-search` if it is
+  still listed). Both are fully merged into `rasty/tally-next`; this environment's git proxy drops
+  branch deletions, so they couldn't be removed from here.
+- No product decisions waiting yet. Per-category budgets and confirmed bills both need new fields in `tally:v1`; they
   will be asked here before either is built.
