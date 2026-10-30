@@ -1,6 +1,6 @@
 // Where Tally's data lives: one JSON document in this app's own localStorage, on the phone only.
 // ponytail: localStorage caps near 5 MB, about ten years at ten entries a day; move to IndexedDB if it gets close.
-import { localDate, mergeBackup, toBackup, type Data } from "./ledger"
+import { localDate, mergeBackup, toBackup, toCsv, type Data } from "./ledger"
 
 const KEY = "tally:v1"
 const HELP_SEEN = "tally:help-seen" // a flag for this phone, kept out of backups
@@ -51,10 +51,8 @@ export function save(data: Data): boolean {
   }
 }
 
-/** Hands a backup file to the share sheet (Save to Files on iPhone), or downloads it where sharing files isn't supported. */
-export async function exportBackup(data: Data) {
-  const name = `tally-backup-${localDate()}.json`
-  const file = new File([toBackup(data)], name, { type: "application/json" })
+/** Hands a file to the share sheet (Save to Files on iPhone), or downloads it where sharing files isn't supported. */
+async function shareFile(file: File) {
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file] })
@@ -66,10 +64,15 @@ export async function exportBackup(data: Data) {
   const url = URL.createObjectURL(file)
   const link = document.createElement("a")
   link.href = url
-  link.download = name
+  link.download = file.name
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
+
+export const exportBackup = (data: Data) => shareFile(new File([toBackup(data)], `tally-backup-${localDate()}.json`, { type: "application/json" }))
+
+/** Every entry as a CSV for Numbers, Excel or Google Sheets. It's a copy to read, not a backup: Import takes the JSON. */
+export const exportCsv = (data: Data) => shareFile(new File([toCsv(data.entries)], `tally-entries-${localDate()}.csv`, { type: "text/csv" }))
 
 export async function importBackup(file: File, current: Data) {
   let parsed: unknown

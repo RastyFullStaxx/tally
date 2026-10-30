@@ -282,6 +282,29 @@ export function restoreEntry(data: Data, { entry, index }: Removed): Data {
   return { ...data, entries: [...data.entries.slice(0, at), entry, ...data.entries.slice(at)] }
 }
 
+// A note typed as "=1+1" or "-50 refund" must stay text: spreadsheets would run it as a formula.
+const FORMULA = /^[=+\-@\t\r]/
+
+/** One CSV field: a guard on formula-like notes, and quotes around commas, quotes and line breaks (RFC 4180). */
+function csvField(value: string) {
+  const text = FORMULA.test(value) ? `'${value}` : value
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+}
+
+const typeOf = (e: Entry) => (isSaving(e) ? (e.income ? "From savings" : "To savings") : e.income ? "Income" : "Expense")
+
+/**
+ * Every entry as a spreadsheet: Date, Type, Category, Note and Amount in pesos, oldest first. Amounts are plain
+ * numbers ("1250.50") so they add up; Type says which way the money went. Starts with a byte-order mark so Excel
+ * reads ₱ and ñ as UTF-8, and uses CRLF line ends.
+ */
+export function toCsv(entries: Entry[]) {
+  const rows = [...entries]
+    .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt)
+    .map((e) => [e.date, typeOf(e), CATEGORIES[e.category], e.note, `${Math.floor(e.amount / 100)}.${pad(e.amount % 100)}`].map(csvField).join(","))
+  return "\uFEFF" + ["Date,Type,Category,Note,Amount", ...rows].join("\r\n") + "\r\n"
+}
+
 export const toBackup = (data: Data, now = new Date()) => JSON.stringify({ app: "tally", version: 1, exportedAt: now.toISOString(), ...data }, null, 2)
 
 function isEntry(x: unknown): x is Entry {
