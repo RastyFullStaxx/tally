@@ -10,7 +10,7 @@ import { LazyInsights } from "@/components/LazyInsights"
 import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
 import { addVote, tipFeatures, type Tip } from "@/lib/insights"
-import { localDate, type Data, type Entry } from "@/lib/ledger"
+import { formatPeso, localDate, removeEntry, restoreEntry, type Data, type Entry, type Removed } from "@/lib/ledger"
 import { exportBackup, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
 
 const TABS = [
@@ -32,6 +32,9 @@ function useToday() {
 // Clock readings happen out here, away from render.
 const keyed = <T,>(value: T) => ({ ...value, key: Date.now() })
 
+/** A short message above the tab bar. A delete's message carries what Undo puts back. */
+type Notice = { text: string; undo?: Removed }
+
 export default function App() {
   const today = useToday()
   const updates = useUpdates()
@@ -44,7 +47,7 @@ export default function App() {
   // A phone's first launch (nothing logged, never shown) opens How to use by itself. After that it's in ···.
   const [sheet, setSheet] = useState<{ kind: Sheet; key: number } | null>(() => (data.entries.length === 0 && !helpSeen() ? { kind: "help", key: 0 } : null))
   const [sheetOpen, setSheetOpen] = useState(() => sheet !== null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [notice, setNotice] = useState<Notice | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const [typing, setTyping] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -73,7 +76,17 @@ export default function App() {
       ...data,
       entries: data.entries.some((e) => e.id === entry.id) ? data.entries.map((e) => (e.id === entry.id ? entry : e)) : [...data.entries, entry],
     })
-  const remove = (id: string) => commit({ ...data, entries: data.entries.filter((e) => e.id !== id) })
+  const remove = (id: string) => {
+    const { data: next, removed } = removeEntry(data, id)
+    if (!removed) return
+    commit(next)
+    const { note, amount } = removed.entry
+    show({ text: `Deleted ${note ? `${note} · ` : ""}${formatPeso(amount)}`, undo: removed }, 5000)
+  }
+  const undo = (removed: Removed) => {
+    commit(restoreEntry(data, removed))
+    setNotice(null)
+  }
   const edit = (entry: Entry) => {
     setEditing(keyed({ entry }))
     setDrawerOpen(true)
@@ -82,10 +95,12 @@ export default function App() {
     setSheet(keyed({ kind }))
     setSheetOpen(true)
   }
-  const say = (text: string) => {
-    setNotice(text)
-    setTimeout(() => setNotice((shown) => (shown === text ? null : shown)), 4000)
+  // The newest notice replaces the one showing, and each timer only clears its own.
+  const show = (next: Notice, ms = 4000) => {
+    setNotice(next)
+    setTimeout(() => setNotice((shown) => (shown === next ? null : shown)), ms)
   }
+  const say = (text: string) => show({ text })
   const vote = (tip: Tip, value: 1 | -1) => {
     commit({ ...data, votes: addVote(data.votes, { id: tip.id, kind: tip.kind, vote: value, at: Date.now(), features: tipFeatures(data.entries, data.budget, today) }) })
     say(value > 0 ? "Thanks. Tally will show more tips like this." : "Got it. Fewer tips like this.")
@@ -126,11 +141,19 @@ export default function App() {
           Couldn't save. Export a backup from the ··· menu.
         </p>
       )}
-      {notice && (
-        <p role="status" className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+3.5rem)] z-50 mx-auto max-w-md rounded-md border border-border bg-raised px-3 py-2 text-sm shadow-lg">
-          {notice}
-        </p>
-      )}
+      {/* The live region stays mounted, so screen readers announce each notice as it appears. */}
+      <div role="status" className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+3.5rem)] z-50 mx-auto max-w-md">
+        {notice && (
+          <div className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-raised py-1 pl-3 text-sm shadow-lg animate-in duration-200 fade-in-0 slide-in-from-bottom-1 motion-reduce:animate-none">
+            <span className={cn("min-w-0 flex-1 py-1", notice.undo ? "truncate" : "pr-3")}>{notice.text}</span>
+            {notice.undo && (
+              <button type="button" onClick={() => undo(notice.undo!)} className="h-11 shrink-0 rounded-sm px-4 font-medium text-primary active:bg-primary/10">
+                Undo
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="px-3 pt-1">
         <AnimatedTally
