@@ -93,7 +93,8 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
   return (
     <div className="flex flex-col">
       <header className="flex items-end justify-between gap-3 pt-4 pr-2 pb-0.5 pl-8">
-        <div className="min-w-0">
+        {/* A size container: the date stays on one line, and the month goes short only when the buttons leave it too little room. */}
+        <div className="@container min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">
             {day.toLocaleDateString("en-PH", { weekday: "long" })}
             {otherYear && ` · ${day.getFullYear()}`}
@@ -105,14 +106,16 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
               onClick={() => setCalendar((c) => ({ open: true, key: c.key + 1 }))}
               aria-haspopup="dialog"
               aria-label={`${day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}. Pick a day`}
-              className="-my-1 flex items-center gap-1 rounded-sm py-1 text-left active:opacity-70"
+              className="-my-1 flex max-w-full items-center gap-1 rounded-sm py-1 text-left whitespace-nowrap active:opacity-70"
             >
-              {day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
-              <DownIcon className="size-4 text-faint" />
+              {/* 11.5rem fits "30 September" and the chevron in SF Pro or Inter, with room to spare; truncate catches the rest. */}
+              <span className="min-w-0 truncate @max-[11.5rem]:hidden">{day.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</span>
+              <span className="hidden min-w-0 truncate @max-[11.5rem]:inline">{day.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+              <DownIcon className="size-4 shrink-0 text-faint @max-[6.5rem]:hidden" />
             </button>
           </h1>
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="flex shrink-0 items-center gap-0.5">
           {date !== today && (
             <Button variant="secondary" size="sm" className="mr-1 text-primary" onClick={() => setPicked(null)}>
               Today

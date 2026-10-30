@@ -19,10 +19,10 @@ production and only the owner merges into it.
 ## In progress
 
 - **Today's header on narrow phones** (`rasty/tally-narrow-header`, started 2026-10-30 14:40 UTC)
-  - [ ] Measured: on a past day, "30 September" wraps to two lines at 390px and below, and at 320px the
+  - [x] Measured: on a past day, "30 September" wraps to two lines at 390px and below, and at 320px the
         Today button overlaps it
-  - [ ] The date never wraps: the title box is a size container and the month goes short ("30 Sept") when
-        it is under 11rem; the chevron hides under 6.5rem; the aria-label keeps the full date
+  - [x] The date never wraps: the title box is a size container and the month goes short ("30 Sept") when
+        it is under 11.5rem; the chevron hides under 6.5rem; the aria-label keeps the full date
   - [ ] Check 320, 340, 360, 375, 390, 430 on today and on a past day; gate; merge
 
 ## Next up (ranked)
