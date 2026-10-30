@@ -85,7 +85,7 @@ function Month({ entries, budget, selected, today, onPick }: Omit<Props, "open" 
               aria-pressed={date === selected}
               className={cn(
                 "flex h-11 flex-col items-center justify-center gap-0.5 rounded-md text-sm tabular-nums transition-colors disabled:text-faint/50",
-                "active:bg-white/[0.06] enabled:hover:bg-white/[0.04]",
+                "active:bg-foreground/[0.06] enabled:hover:bg-foreground/[0.04]",
                 date === selected && "ring-1 ring-primary ring-inset"
               )}
             >

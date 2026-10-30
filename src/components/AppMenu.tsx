@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useRegisterSW } from "virtual:pwa-register/react"
 
-import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TableIcon, TargetIcon, UploadIcon, UserIcon, WalletIcon } from "@/components/icons"
+import { BulbIcon, DownloadIcon, MoreIcon, PhoneIcon, QuestionIcon, RefreshIcon, TableIcon, TargetIcon, UploadIcon, UserIcon, WalletIcon, SunIcon, MoonIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { accountsEnabled } from "@/lib/flags"
+import type { Theme } from "@/lib/theme"
 
 export type Sheet = "help" | "budget" | "goal" | "install" | "guide" | "account"
 
@@ -154,10 +155,14 @@ type Props = {
   say: (text: string) => void
   animateTally: boolean
   onToggleAnimation: () => void
+  theme: Theme
+  /** `from` is where the item was touched, so the new theme can grow from there. */
+  onToggleTheme: (from?: { x: number; y: number }) => void
 }
 
 /** The ··· menu in both screens' headers, with the Update pill beside it when a new version is waiting. */
-export function AppMenu({ updates, install, onOpen, onExport, onExportCsv, onImport, say, animateTally, onToggleAnimation }: Props) {
+export function AppMenu({ updates, install, onOpen, onExport, onExportCsv, onImport, say, animateTally, onToggleAnimation, theme, onToggleTheme }: Props) {
+  const touch = useRef<{ x: number; y: number } | undefined>(undefined)
   return (
     <div className="flex items-center gap-1">
       {updates.ready && (
@@ -217,6 +222,10 @@ export function AppMenu({ updates, install, onOpen, onExport, onExportCsv, onImp
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
+          <DropdownMenuItem onPointerDown={(e) => (touch.current = { x: e.clientX, y: e.clientY })} onSelect={() => onToggleTheme(touch.current)}>
+            {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </DropdownMenuItem>
           <DropdownMenuCheckboxItem checked={animateTally} onCheckedChange={onToggleAnimation}>
             Animate Tally
           </DropdownMenuCheckboxItem>

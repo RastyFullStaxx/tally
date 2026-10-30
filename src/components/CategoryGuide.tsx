@@ -29,10 +29,10 @@ const DECIDER: [string, ExpenseCategory][] = [
   ["Was it for my health?", "health"],
 ]
 
-const tint = (c: CategoryId) => ({ color: `color-mix(in oklab, ${categoryColor(c)} 70%, white)` })
+const tint = (c: CategoryId) => ({ color: `color-mix(in oklab, ${categoryColor(c)} 70%, var(--ink))` })
 
 // One row of the category list: its colour, name and what goes in it, ticked when it's the current one.
-const rowClass = (on: boolean) => cn("flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors", on ? "bg-white/[0.06]" : "active:bg-white/[0.04]")
+const rowClass = (on: boolean) => cn("flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors", on ? "bg-foreground/[0.06]" : "active:bg-foreground/[0.04]")
 const rowStyle = (c: CategoryId, on: boolean) => (on ? { boxShadow: `inset 0 0 0 1px ${categoryColor(c)}` } : undefined)
 
 function Row({ category: c, on }: { category: CategoryId; on: boolean }) {
@@ -110,7 +110,7 @@ export function CategoryGuideList() {
         </ol>
         <p className="mt-1 text-xs text-faint">No to all of them? Use Other.</p>
       </div>
-      <p className="rounded-md bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">Tally learns from you. Every time you save an entry or fix its category, its next guess gets better.</p>
+      <p className="rounded-md bg-foreground/[0.03] px-2.5 py-2 text-xs text-muted-foreground">Tally learns from you. Every time you save an entry or fix its category, its next guess gets better.</p>
     </div>
   )
 }

@@ -203,7 +203,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
         <ul>
           {lines.map((e) => (
             <li key={e.id} className="border-b border-rule transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none starting:-translate-y-1.5 starting:opacity-0">
-              <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-white/[0.04]">
+              <button type="button" onClick={() => onEdit(e)} className="flex h-9 w-full items-center gap-2 pr-4 pl-8 text-left text-sm transition-colors active:bg-foreground/[0.04]">
                 <span className="min-w-0 truncate">{e.note || labelOf(e)}</span>
                 <CategoryChip category={e.category} label={labelOf(e)} />
                 <span className={cn("ml-auto shrink-0 font-medium tabular-nums", isIncome(e) && "text-income", isSaving(e) && "text-savings")}>

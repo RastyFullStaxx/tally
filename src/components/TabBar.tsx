@@ -25,7 +25,7 @@ export function TabBar({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) 
             aria-current={tab === t.id ? "page" : undefined}
             className={cn(
               "flex h-11 items-center justify-center gap-1.5 border-t-2 text-[13px] font-medium transition-colors duration-150",
-              tab === t.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground active:bg-white/[0.04]"
+              tab === t.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground active:bg-foreground/[0.04]"
             )}
           >
             <t.icon className={cn("size-4", tab === t.id && "text-primary")} />

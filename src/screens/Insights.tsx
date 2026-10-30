@@ -284,7 +284,7 @@ export function Insights({ data, today, menu, onEditBudget, onEditGoal, onVote, 
                       <button type="button" onClick={() => onBill(b.item, "bill")} className="h-11 rounded-sm px-2.5 font-medium text-primary active:bg-primary/10">
                         Yes
                       </button>
-                      <button type="button" onClick={() => onBill(b.item, "not")} className="h-11 rounded-sm px-2.5 font-medium active:bg-white/[0.04]">
+                      <button type="button" onClick={() => onBill(b.item, "not")} className="h-11 rounded-sm px-2.5 font-medium active:bg-foreground/[0.04]">
                         Not a bill
                       </button>
                     </div>

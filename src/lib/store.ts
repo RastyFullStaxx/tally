@@ -3,10 +3,12 @@
 import { type Data } from "./model"
 import { localDate } from "./dates"
 import { mergeBackup, toBackup, toCsv } from "./backup"
+import type { Theme } from "./theme"
 
 const KEY = "tally:v1"
 const HELP_SEEN = "tally:help-seen" // a flag for this phone, kept out of backups
 const ANIMATE = "tally:animate-mascot" // "on" or "off" for this phone, kept out of backups
+const THEME = "tally:theme" // "light" or "dark" for this phone, kept out of backups; index.html reads it too
 
 /** Whether How to use has been shown on this phone. Unreadable storage counts as seen, so it never nags. */
 export function helpSeen() {
@@ -39,6 +41,23 @@ export function setAnimateMascot(on: boolean) {
     localStorage.setItem(ANIMATE, on ? "on" : "off")
   } catch {
     // Storage is blocked: the choice lasts until the app closes.
+  }
+}
+
+/** The theme picked on this phone: navy unless light was chosen. */
+export function savedTheme(): Theme {
+  try {
+    return localStorage.getItem(THEME) === "light" ? "light" : "dark"
+  } catch {
+    return "dark"
+  }
+}
+
+export function saveTheme(theme: Theme) {
+  try {
+    localStorage.setItem(THEME, theme)
+  } catch {
+    // Storage is blocked: the theme lasts until the app closes.
   }
 }
 
