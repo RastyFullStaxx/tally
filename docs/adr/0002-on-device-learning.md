@@ -62,6 +62,31 @@ Letters cut wrong guesses by more than half, and their own guesses are right 98%
 does no better than Naive Bayes with letters as a fallback, and matching typos of keywords adds only 0.1
 points, so neither was taken. These are synthetic notebooks: the owner's real habits are the real test.
 
+## The month-end forecast (2026-10-30)
+
+`forecastMonth()` adds what's spent, the recurring bills still to come, and everyday spending at a daily rate
+for the days left. `npm run eval:forecast` (`scripts/eval-forecast.ts`) replays five seeded, synthetic people
+for six months each and asks for the month's total on every day, using only what was logged by then. They
+spend more on weekends and after payday, make the odd big buy, pay monthly bills, and have hotter and cooler
+months. The household also has a weekly grocery run, one person's spending jumps by half and stays there, and
+one forgets to log about one day in five, plus a week now and then.
+
+| From the 7th (when the forecast tip shows) | Average miss | Bias | 7th–13th | Month a habit changes |
+| --- | --- | --- | --- | --- |
+| Before: this month's rate so far | 13.8% | +7.1% | 19.5% | 8.8% |
+| **Now** | **11.1%** | **+3.7%** | **14.5%** | **7.7%** |
+
+What changed, and what didn't:
+
+- **One-offs count once.** A big buy (over 2.5× a usual day) of something not logged in the 4 weeks before
+  is in what's spent, but isn't projected onto the days left. Capping every big day instead also flattened
+  the weekly grocery run and pushed the forecast below the real total, the worse way to be wrong for a budget.
+- **A young month leans on the last 4 weeks** as if they were 14 more days of it, so a payday splurge on the
+  1st doesn't set the pace. Only when at least 14 of those 28 days have entries, since unlogged days aren't
+  days without spending.
+- **Weekday weights were tried and dropped.** They changed nothing: over a month, weekends fall about evenly
+  into the days gone and the days left.
+
 ## Consequences
 
 - **Cost.** Retraining is linear in the number of entries: about 5 ms at 1,000 entries and 37 ms at

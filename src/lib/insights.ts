@@ -252,25 +252,49 @@ export function describeOddAmount(odd: OddAmount, amount: number): string {
 
 export type Forecast = { total: number; upcoming: number; dailyRate: number; fromHistory: boolean }
 
+const ONE_OFF = 2.5 // a big buy is over 2.5× a usual day's everyday spending…
+const ONE_OFF_GAP = 28 // …on something not logged in the 4 weeks before it
+const LEAN_DAYS = 14 // how many days' worth of your last 4 weeks the rate leans on while the month is young
+
 /**
- * Month-end spending: what's spent, plus recurring bills still to come, plus everyday spending at its daily rate
- * for the days left. The rate is this month's after a week; before that, your last 4 weeks if there's that much history.
+ * Month-end spending: what's spent, plus recurring bills still to come, plus everyday spending at its daily
+ * rate for the days left. Measured with `npm run eval:forecast` (see the README):
+ * - **One-offs count once.** A big buy of something new (over 2.5× a usual day, its item not logged in the 4
+ *   weeks before) is in what's spent, but isn't projected onto the days left. A weekly grocery run still is.
+ * - **A young month leans on your last 4 weeks**, as if they were 14 more days of this month, so a payday
+ *   splurge on the 1st doesn't set the pace. Only when at least 14 of those 28 days have entries: days you
+ *   didn't log aren't days you spent nothing.
  */
 export function forecastMonth(entries: Entry[], month: string, today: string): Forecast {
   const s = monthSummary(entries, month, 0, today)
   if (month !== monthOf(today)) return { total: s.spent, upcoming: 0, dailyRate: 0, fromHistory: false }
   const bills = recurringBills(entries, today)
   const recurring = new Set(bills.map((b) => b.item))
-  const everyday = (e: Entry) => isExpense(e) && e.category !== "bills" && !recurring.has(itemOf(e))
   const upcoming = unpaidThisMonth(bills, today).reduce((n, b) => n + b.amount, 0)
-  let dailyRate = sum(expensesIn(entries, month).filter(everyday)) / s.day
-  let fromHistory = false
   const start = shiftDay(today, -28)
-  if (s.day < 7 && firstDate(entries, today) <= start) {
-    dailyRate = sum(entries.filter((e) => everyday(e) && e.date >= start && e.date < today)) / 28
-    fromHistory = true
+  const history = firstDate(entries, today) <= start && new Set(entries.filter((e) => e.date >= start && e.date < today).map((e) => e.date)).size >= 14
+  const from = history ? start : `${month}-01`
+  const everyday = entries.filter((e) => isExpense(e) && e.category !== "bills" && !recurring.has(itemOf(e)) && e.date >= shiftDay(from, -ONE_OFF_GAP) && e.date <= today)
+
+  // A usual day: the middle daily total from `from` to today.
+  const byDay = new Map<string, number>()
+  for (const e of everyday) if (e.date >= from) byDay.set(e.date, (byDay.get(e.date) ?? 0) + e.amount)
+  const totals: number[] = []
+  for (let d = from; d <= today; d = shiftDay(d, 1)) totals.push(byDay.get(d) ?? 0)
+  const usualDay = median(totals)
+  const lastSeen = new Map<string, string>()
+  const oneOff = new Set<Entry>()
+  for (const e of [...everyday].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt)) {
+    const seen = lastSeen.get(itemOf(e))
+    if (usualDay > 0 && e.amount > usualDay * ONE_OFF && (!seen || seen < shiftDay(e.date, -ONE_OFF_GAP))) oneOff.add(e)
+    lastSeen.set(itemOf(e), e.date)
   }
-  return { total: Math.round(s.spent + upcoming + dailyRate * (s.days - s.day)), upcoming, dailyRate, fromHistory }
+  const ongoing = everyday.filter((e) => !oneOff.has(e))
+
+  const thisMonth = sum(ongoing.filter((e) => e.date.startsWith(month)))
+  const usual = history ? sum(ongoing.filter((e) => e.date >= start && e.date < today)) / 28 : 0
+  const dailyRate = history ? (thisMonth + LEAN_DAYS * usual) / (s.day + LEAN_DAYS) : thisMonth / s.day
+  return { total: Math.round(s.spent + upcoming + dailyRate * (s.days - s.day)), upcoming, dailyRate, fromHistory: history && s.day < 7 }
 }
 
 export type Safe = { today: number; perDay: number; upcoming: number; spentToday: number; daysLeft: number }

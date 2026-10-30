@@ -188,6 +188,35 @@ test("forecastMonth uses your last 4 weeks early in the month, plus the bills st
   assert.deepEqual(forecastMonth(billsAndLunches(), "2026-10", "2026-10-05"), { total: 1640000, upcoming: 220000, dailyRate: 20000, fromHistory: true })
 })
 
+test("forecastMonth counts a one-off big buy once, but keeps projecting a regular big day", () => {
+  // Groceries ₱400 a day since September, a ₱2,500 Puregold run every Saturday, and new shoes on 8 October.
+  const es: Entry[] = []
+  for (let d = "2026-09-01"; d <= "2026-10-10"; d = shiftDay(d, 1)) es.push(entry(d, 400, "palengke", { category: "groceries" }))
+  for (const d of ["2026-09-05", "2026-09-12", "2026-09-19", "2026-09-26", "2026-10-03", "2026-10-10"]) es.push(entry(d, 2500, "puregold", { category: "groceries" }))
+  es.push(entry("2026-10-08", 4000, "new shoes", { category: "shopping" }))
+  const f = forecastMonth(es, "2026-10", "2026-10-10")
+  // The rate: October without the shoes (₱4,000 + 2 runs) leaning on the last 4 weeks (₱400 a day + 4 runs).
+  const october = 10 * 40000 + 2 * 250000
+  const usual = (28 * 40000 + 4 * 250000) / 28
+  assert.equal(f.dailyRate, (october + 14 * usual) / (10 + 14))
+  assert.equal(f.total, Math.round(october + 400000 + f.dailyRate * 21), "the shoes are in what's spent, not in the days left")
+  assert.equal(f.fromHistory, false)
+})
+
+test("forecastMonth leans on your last 4 weeks while the month is young, only if you logged most of them", () => {
+  const es: Entry[] = []
+  for (let d = "2026-09-03"; d <= "2026-09-30"; d = shiftDay(d, 1)) es.push(entry(d, 300, "lunch"))
+  es.push(entry("2026-10-01", 900, "lunch"), entry("2026-10-02", 900, "lunch")) // payday treats
+  const young = forecastMonth(es, "2026-10", "2026-10-02")
+  assert.equal(young.fromHistory, true)
+  // The 28 days before today run from 4 September to 1 October: 27 days at ₱300 and the ₱900 on the 1st.
+  assert.equal(young.dailyRate, (180000 + 14 * ((27 * 30000 + 90000) / 28)) / 16)
+  // Logged only a few days of the last 4 weeks: those gaps aren't zero spending, so this month alone sets the rate.
+  const sparse = [entry("2026-09-01", 300, "lunch"), entry("2026-09-02", 300, "lunch"), entry("2026-10-01", 900, "lunch"), entry("2026-10-02", 900, "lunch")]
+  const alone = forecastMonth(sparse, "2026-10", "2026-10-02")
+  assert.deepEqual([alone.fromHistory, alone.dailyRate], [false, 90000])
+})
+
 test("safeToSpend leaves room for the bills still to come", () => {
   assert.deepEqual(safeToSpend(billsAndLunches(), 2000000, "2026-10-05"), { today: 13333, perDay: 33333, upcoming: 220000, spentToday: 20000, daysLeft: 27 })
   assert.equal(safeToSpend(billsAndLunches(), 0, "2026-10-05"), null)
@@ -269,7 +298,8 @@ test("heading over with a daily limit below what essentials cost: say so, and gi
   const es: Entry[] = [entry("2026-10-02", 3000, "shopee", { category: "shopping" })]
   for (let d = 1; d <= 10; d++) es.push(entry(day("2026-10", d), 400, "puregold", { category: "groceries" }))
   const [tip] = advise(es, "2026-10", 1000000, "2026-10-10")
-  assert.equal(tip.title, "You're on track to overspend by ₱11,700")
+  // The Shopee order counts once: the days left are projected at the ₱400 a day that keeps happening.
+  assert.equal(tip.title, "You're on track to overspend by ₱5,400")
   assert.equal(tip.action, "Essentials alone usually cost about ₱400 a day, so ₱10,000 can't be met now. Skip extras and you'll land near ₱15,400, ₱5,400 over.")
 })
 
