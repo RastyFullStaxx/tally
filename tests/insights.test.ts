@@ -8,12 +8,14 @@ import {
   advise,
   categoryDetail,
   dayBrief,
+  describeOddAmount,
   incomeProfile,
   forecastMonth,
   recurringBills,
   safeToSpend,
   savingsSummary,
   spendingPatterns,
+  unusualAmount,
   unusualWeeks,
   usualMonth,
 } from "../src/lib/insights.ts"
@@ -466,4 +468,31 @@ test("the day line for today: a safe amount, a stretch limit, or essentials only
   assert.equal(gone?.label, "The budget is used up · essentials only today")
   assert.deepEqual(gone.notes, ["If you must spend, keep it to essentials: about ₱22 a day."])
   assert.equal(dayBrief(es, 0, "2026-10-14", "2026-10-14"), null)
+})
+
+test("an amount far from what the same thing usually costs is flagged, and ordinary swings aren't", () => {
+  const history = [120, 130, 110, 120, 150, 125].map((p, i) => entry(day("2026-10", i + 1), p, i % 2 ? "coffee latte" : "coffee"))
+  const fresh = (pesos: number, note = "coffee", extra: Partial<Entry> = {}) => entry("2026-10-20", pesos, note, extra)
+  const typo = fresh(1200)
+  const odd = unusualAmount([...history, typo], typo)
+  assert.deepEqual(odd && { ...odd, times: Math.round(odd.times) }, { item: "coffee", usual: 12250, times: 10, direction: "high" })
+  assert.equal(describeOddAmount(odd!, typo.amount), "₱1,200 for coffee is 10× the usual ₱123. An extra zero?")
+  const short = fresh(12)
+  const low = unusualAmount([...history, short], short)
+  assert.equal(low?.direction, "low")
+  assert.equal(describeOddAmount(low!, short.amount), "₱12 for coffee is far below the usual ₱123. A zero missing?")
+  assert.equal(describeOddAmount({ item: "coffee", usual: 12250, times: 5, direction: "high" }, 61250), "₱612.50 for coffee is 5× the usual ₱123.")
+  // Not flagged: a normal price, a big but believable one, a different category, a thin history, a bare amount.
+  assert.equal(unusualAmount(history, fresh(160)), null)
+  assert.equal(unusualAmount(history, fresh(300)), null, "under 4×")
+  assert.equal(unusualAmount(history, fresh(1200, "coffee beans", { category: "groceries" })), null, "groceries coffee is another thing")
+  assert.equal(unusualAmount(history.slice(0, 4), fresh(1200)), null, "needs 5 earlier entries")
+  assert.equal(unusualAmount(history, fresh(1200, "")), null)
+  assert.equal(unusualAmount(history, fresh(1200, "", { category: "income", income: true })), null)
+  // Small amounts need a real gap in pesos: a ₱15 ride that's ₱60 today is just a longer ride.
+  const jeep = [15, 13, 15, 15, 13].map((p, i) => entry(day("2026-10", i + 1), p, "jeep", { category: "transport" }))
+  assert.equal(unusualAmount(jeep, entry("2026-10-20", 60, "jeep", { category: "transport" })), null)
+  // A price that has been that high before isn't a typo.
+  const grab = [180, 190, 170, 200, 950].map((p, i) => entry(day("2026-10", i + 1), p, "grab", { category: "transport" }))
+  assert.equal(unusualAmount(grab, entry("2026-10-20", 900, "grab", { category: "transport" })), null)
 })

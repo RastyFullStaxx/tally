@@ -11,7 +11,7 @@ import { SearchSheet } from "@/components/SearchSheet"
 import { Sheets } from "@/components/Sheets"
 import { Today } from "@/components/Today"
 import { Button } from "@/components/ui/button"
-import { addVote, tipFeatures, type Tip } from "@/lib/insights"
+import { addVote, describeOddAmount, tipFeatures, unusualAmount, type Tip } from "@/lib/insights"
 import { formatPeso, localDate, removeEntry, restoreEntry, type Data, type Entry, type Filter, type Removed } from "@/lib/ledger"
 import { exportBackup, exportCsv, helpSeen, importBackup, load, markHelpSeen, save } from "@/lib/store"
 
@@ -34,8 +34,13 @@ function useToday() {
 // Clock readings happen out here, away from render.
 const keyed = <T,>(value: T) => ({ ...value, key: Date.now() })
 
-/** A short message above the tab bar. A delete's message carries what Undo puts back. */
-type Notice = { text: string; undo?: Removed }
+/**
+ * A short message above the tab bar. A delete's carries what Undo puts back; an odd amount's carries the id Fix
+ * opens. Data, not callbacks, so the button acts on the entries as they are when it's tapped.
+ */
+type Notice = { text: string; undo?: Removed; fix?: string }
+
+const ACTION = "h-11 shrink-0 rounded-sm px-4 font-medium text-primary active:bg-primary/10"
 
 export default function App() {
   const today = useToday()
@@ -80,6 +85,17 @@ export default function App() {
       ...data,
       entries: data.entries.some((e) => e.id === entry.id) ? data.entries.map((e) => (e.id === entry.id ? entry : e)) : [...data.entries, entry],
     })
+  // A new line (not an edit) whose amount is far off its usual is most likely a typo: say so, with Fix.
+  const add = (entry: Entry) => {
+    upsert(entry)
+    const odd = unusualAmount(data.entries, entry)
+    if (odd) show({ text: describeOddAmount(odd, entry.amount), fix: entry.id }, 6000)
+  }
+  const fix = (id: string) => {
+    const entry = data.entries.find((e) => e.id === id)
+    setNotice(null)
+    if (entry) edit(entry)
+  }
   const remove = (id: string) => {
     const { data: next, removed } = removeEntry(data, id)
     if (!removed) return
@@ -149,9 +165,14 @@ export default function App() {
       <div role="status" className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+3.5rem)] z-50 mx-auto max-w-md">
         {notice && (
           <div className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-raised py-1 pl-3 text-sm shadow-lg animate-in duration-200 fade-in-0 slide-in-from-bottom-1 motion-reduce:animate-none">
-            <span className={cn("min-w-0 flex-1 py-1", notice.undo ? "truncate" : "pr-3")}>{notice.text}</span>
+            <span className={cn("min-w-0 flex-1 py-1", notice.undo ? "truncate" : !notice.fix && "pr-3")}>{notice.text}</span>
+            {notice.fix && (
+              <button type="button" onClick={() => fix(notice.fix!)} className={ACTION}>
+                Fix
+              </button>
+            )}
             {notice.undo && (
-              <button type="button" onClick={() => undo(notice.undo!)} className="h-11 shrink-0 rounded-sm px-4 font-medium text-primary active:bg-primary/10">
+              <button type="button" onClick={() => undo(notice.undo!)} className={ACTION}>
                 Undo
               </button>
             )}
@@ -175,7 +196,7 @@ export default function App() {
 
       {/* Today stays mounted so a half-typed line survives a tab switch; Insights (and its charts, a separate chunk) only exists while open. */}
       <main hidden={tab !== "today"} className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
-        <Today data={data} today={today} menu={menu} onAdd={upsert} onEdit={edit} onEditBudget={() => open("budget")} />
+        <Today data={data} today={today} menu={menu} onAdd={add} onEdit={edit} onEditBudget={() => open("budget")} />
       </main>
       {tab === "insights" && (
         <main className="animate-in duration-300 fade-in-0 motion-reduce:animate-none">
