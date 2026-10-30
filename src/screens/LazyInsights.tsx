@@ -1,12 +1,12 @@
 import { Component, lazy, Suspense, type ComponentProps, type ReactNode } from "react"
 
-import { loadInsights } from "@/components/insights-chunk"
+import { loadInsights } from "@/screens/insights-chunk"
 import { AlertIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { monthName, monthOf, toDate } from "@/lib/ledger"
+import { monthName, monthOf, toDate } from "@/lib/dates"
 
-type Props = ComponentProps<typeof import("@/components/Insights").Insights>
+type Props = ComponentProps<typeof import("@/screens/Insights").Insights>
 
 const Screen = lazy(() => loadInsights().then((m) => ({ default: m.Insights })))
 

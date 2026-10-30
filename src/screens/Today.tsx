@@ -3,7 +3,7 @@ import { Mascot } from "@/components/Mascot"
 import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { cn } from "cn"
 
-import { CalendarSheet } from "@/components/CalendarSheet"
+import { CalendarSheet } from "@/sheets/CalendarSheet"
 import { CategoryChip, labelOf } from "@/components/category"
 import { CategoryMenu } from "@/components/CategoryGuide"
 import { DownIcon, LeftIcon, PencilIcon, ReturnIcon, RightIcon } from "@/components/icons"
@@ -11,24 +11,11 @@ import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { predictCategory, trainCategoryModel } from "@/lib/classifier"
 import { dayBrief } from "@/lib/insights"
-import {
-  CATEGORIES,
-  formatPeso,
-  formatPesoWhole,
-  isExpense,
-  isIncome,
-  isSaving,
-  monthOf,
-  monthSummary,
-  notBills,
-  parseLine,
-  shiftDay,
-  toDate,
-  type CategoryId,
-  type Data,
-  type Entry,
-  type Parsed,
-} from "@/lib/ledger"
+import { CATEGORIES, isExpense, isIncome, isSaving, notBills, type CategoryId, type Data, type Entry } from "@/lib/model"
+import { parseLine, type Parsed } from "@/lib/parse"
+import { monthOf, shiftDay, toDate } from "@/lib/dates"
+import { formatPeso, formatPesoWhole } from "@/lib/format"
+import { monthSummary } from "@/lib/ledger"
 
 type Props = { data: Data; today: string; menu: ReactNode; onAdd: (entry: Entry) => void; onEdit: (entry: Entry) => void; onEditBudget: () => void }
 
@@ -57,12 +44,13 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
 
   const date = picked && picked < today ? picked : today
   const preview = text.trim() ? parseLine(text, (note, amount) => predictCategory(model, note, amount).category) : null
-  const lines = data.entries.filter((e) => e.date === date).sort((a, b) => b.createdAt - a.createdAt)
+  // Everything below reads all entries, so it's worked out when the data or the day changes, not on each keystroke.
+  const lines = useMemo(() => data.entries.filter((e) => e.date === date).sort((a, b) => b.createdAt - a.createdAt), [data.entries, date])
   const spent = lines.reduce((sum, e) => (isExpense(e) ? sum + e.amount : sum), 0)
-  const month = monthSummary(data.entries, monthOf(today), data.budget, today)
-  const day = toDate(date)
+  const monthSpent = useMemo(() => monthSummary(data.entries, monthOf(today), data.budget, today).spent, [data.entries, data.budget, today])
   // The line under the date speaks about the day showing: a plan for today, a verdict for a past day.
-  const brief = dayBrief(data.entries, data.budget, date, today, notBills(data))
+  const brief = useMemo(() => dayBrief(data.entries, data.budget, date, today, notBills(data)), [data, date, today])
+  const day = toDate(date)
   const otherYear = day.getFullYear() !== toDate(today).getFullYear()
   const focus = () => input.current?.focus()
   const show = (next: string) => setPicked(next >= today ? null : next)
@@ -148,7 +136,7 @@ export function Today({ data, today, menu, onAdd, onEdit, onEditBudget }: Props)
         </button>
       ) : (
         <p className="flex items-center gap-1 pr-4 pb-2 pl-8 text-xs text-muted-foreground">
-          {formatPeso(month.spent)} spent this month ·
+          {formatPeso(monthSpent)} spent this month ·
           <button type="button" onClick={onEditBudget} className="text-primary">
             Set a budget
           </button>

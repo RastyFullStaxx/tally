@@ -1,28 +1,11 @@
 // Tally's insights: how the money went, what's normal for you, bills that repeat, what's safe to spend,
 // savings and the forecast. All computed on the phone from your own entries. The tips built on these are in
 // advice.ts, which loads with the Insights screen. Pure functions, so `npm test` runs them under plain Node.
-import {
-  CATEGORIES,
-  daysIn,
-  formatPeso,
-  formatPesoWhole as pesos,
-  isExpense,
-  isIncome,
-  isSaving,
-  lastMonths,
-  monthName,
-  monthOf,
-  monthSummary,
-  pad,
-  shiftDay,
-  shiftMonth,
-  toDate,
-  wordsOf,
-  type CategoryId,
-  type Entry,
-  type Goal,
-  type TipVote,
-} from "./ledger.ts"
+import { CATEGORIES, isExpense, isIncome, isSaving, type CategoryId, type Entry, type Goal, type TipVote } from "./model.ts"
+import { wordsOf } from "./parse.ts"
+import { daysIn, monthName, monthOf, pad, shiftDay, shiftMonth, toDate } from "./dates.ts"
+import { formatPeso, formatPesoWhole as pesos, capitalize } from "./format.ts"
+import { lastMonths, monthSummary } from "./ledger.ts"
 
 export const NEEDS: CategoryId[] = ["bills", "groceries", "transport", "health"]
 export const WANTS: CategoryId[] = ["food", "shopping", "leisure"]
@@ -32,7 +15,6 @@ export const NECESSITIES = new Set("lunch dinner breakfast rice fare jeep jeepne
 
 export const pct = (x: number) => `${Math.round(x * 100)}%`
 const dayOf = (date: string) => Number(date.slice(8, 10))
-export const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1)
 export const itemOf = (e: Entry) => wordsOf(e.note)[0] ?? CATEGORIES[e.category].toLowerCase()
 export const sum = (list: Entry[]) => list.reduce((n, e) => n + e.amount, 0)
 export const median = (xs: number[]) => {

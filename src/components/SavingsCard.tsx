@@ -5,7 +5,7 @@ import { SectionTitle } from "@/components/section"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { Savings } from "@/lib/insights"
-import { formatPeso, formatPesoWhole } from "@/lib/ledger"
+import { formatPeso, formatPesoWhole } from "@/lib/format"
 
 /** Money set aside (not spent, not income), and how close the goal is. */
 export function SavingsCard({ savings, onEditGoal }: { savings: Savings; onEditGoal: () => void }) {

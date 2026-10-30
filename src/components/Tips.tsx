@@ -5,7 +5,7 @@ import { cn } from "cn"
 import { AlertIcon, ArrowRightIcon, BulbIcon, CheckCircleIcon, ThumbDownIcon, ThumbUpIcon } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import type { Tip } from "@/lib/insights"
-import type { TipVote } from "@/lib/ledger"
+import type { TipVote } from "@/lib/model"
 
 export const TONE = {
   warn: { icon: AlertIcon, className: "text-over" },

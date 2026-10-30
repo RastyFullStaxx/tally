@@ -4,7 +4,8 @@
 // payday (the 15th and the last day), makes the odd big purchase, pays monthly bills, and has some months
 // that run hotter or cooler than others. Synthetic on purpose: no real spending data is needed.
 import { forecastMonth } from "../src/lib/insights.ts"
-import { daysIn, monthOf, shiftDay, shiftMonth, toDate, type CategoryId, type Entry } from "../src/lib/ledger.ts"
+import { type CategoryId, type Entry } from "../src/lib/model.ts"
+import { daysIn, monthOf, shiftDay, shiftMonth, toDate } from "../src/lib/dates.ts"
 
 type Persona = { name: string; weekday: number; saturday: number; sunday: number; bills: [string, number, number][]; jump?: { from: number; by: number }; weekly?: [string, number]; gaps?: boolean }
 

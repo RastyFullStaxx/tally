@@ -4,7 +4,8 @@
 // Each persona has its own merchants (most not in the keyword list), its own filing habits (some against the
 // keywords), short forms, typos, and one habit that changes halfway.
 import { predictCategory, trainCategoryModel, type Prediction } from "../src/lib/classifier.ts"
-import { localDate, type CategoryId, type Entry } from "../src/lib/ledger.ts"
+import { type CategoryId, type Entry } from "../src/lib/model.ts"
+import { localDate } from "../src/lib/dates.ts"
 
 type Habit = { notes: string[]; category: CategoryId; pesos: [number, number]; weight: number; from?: number; until?: number }
 type Persona = { name: string; perDay: number; habits: Habit[] }

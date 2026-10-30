@@ -14,7 +14,10 @@ import { Card } from "@/components/ui/card"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { advise } from "@/lib/advice"
 import { categoryDetail, incomeProfile, recurringBills, safeToSpend, savingsSummary, spendingPatterns, type Tip } from "@/lib/insights"
-import { CATEGORIES, formatPeso, formatPesoWhole, lastMonths, monthName, monthOf, monthSummary, notBills, shiftMonth, toDate, type BillDecision, type Data } from "@/lib/ledger"
+import { CATEGORIES, notBills, type BillDecision, type Data } from "@/lib/model"
+import { monthName, monthOf, shiftMonth, toDate } from "@/lib/dates"
+import { formatPeso, formatPesoWhole, capitalize } from "@/lib/format"
+import { lastMonths, monthSummary } from "@/lib/ledger"
 
 type Props = {
   data: Data
@@ -39,7 +42,6 @@ const trendChart = {
 
 const pct = (x: number) => (x > 0 && x < 0.005 ? "<1%" : `${Math.round(x * 100)}%`)
 const shortDate = (date: string) => toDate(date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1)
 
 // Chart values are pesos; this puts the ₱ back in the tooltip.
 const pesoRow = (config: ChartConfig) => (value: unknown, name: unknown, item: { color?: string }) => (

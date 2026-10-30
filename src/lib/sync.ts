@@ -1,7 +1,7 @@
 // The seam for accounts and sync (ADR 0003). The phone's `tally:v1` stays the source of truth; a provider
 // only adds a copy in the user's account. Nothing here touches the network: the defaults below do nothing,
 // and the Account screen that uses them is behind `accountsEnabled`, which is off.
-import type { Data } from "./ledger"
+import type { Data } from "./model"
 
 /** Who is signed in: only what the Account screen shows. The provider keeps its own tokens. */
 export type Account = { id: string; email: string; name?: string }

@@ -1,7 +1,7 @@
 import { preloadable } from "@/lib/preload"
 
 /** Insights and Recharts live in their own chunk, so Today opens without parsing the charts. */
-export const loadInsights = preloadable(() => import("@/components/Insights"))
+export const loadInsights = preloadable(() => import("@/screens/Insights"))
 
 /** Fetches the chunk once the phone is idle, so the first tap on Insights doesn't wait. */
 export function preloadInsightsWhenIdle() {

@@ -2,7 +2,8 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { grams, predictCategory, similarity, trainCategoryModel } from "../src/lib/classifier.ts"
-import { parseLine, type Entry } from "../src/lib/ledger.ts"
+import { type Entry } from "../src/lib/model.ts"
+import { parseLine } from "../src/lib/parse.ts"
 
 const DAY = 86_400_000
 let seq = 0

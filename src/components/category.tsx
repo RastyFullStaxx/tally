@@ -1,6 +1,6 @@
 import { cn } from "cn"
 
-import { CATEGORIES, isSaving, type CategoryId, type Entry } from "@/lib/ledger"
+import { CATEGORIES, isSaving, type CategoryId, type Entry } from "@/lib/model"
 
 // The order the validator passed on navy: neighbours stay distinct for colourblind eyes (worst ΔE 10.4).
 export const CATEGORY_ORDER: CategoryId[] = ["food", "bills", "groceries", "transport", "shopping", "leisure", "health", "other"]

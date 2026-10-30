@@ -18,7 +18,8 @@ import {
   unusualWeeks,
 } from "../src/lib/insights.ts"
 import { advise, usualMonth } from "../src/lib/advice.ts"
-import { shiftDay, type Entry, type TipVote } from "../src/lib/ledger.ts"
+import { type Entry, type TipVote } from "../src/lib/model.ts"
+import { shiftDay } from "../src/lib/dates.ts"
 
 let seq = 0
 const entry = (date: string, pesos: number, note: string, extra: Partial<Entry> = {}): Entry => ({

@@ -2,12 +2,12 @@ import { cn } from "cn"
 
 import { CATEGORY_ORDER, categoryColor } from "@/components/category"
 import { CheckIcon } from "@/components/icons"
-import { CATEGORIES, type CategoryId } from "@/lib/ledger"
+import { CATEGORIES, type CategoryId } from "@/lib/model"
 
 type ExpenseCategory = Exclude<CategoryId, "income" | "savings">
 
 /** What goes in each category, in words anyone can decide with. */
-export const CATEGORY_HELP: Record<ExpenseCategory, string> = {
+const CATEGORY_HELP: Record<ExpenseCategory, string> = {
   food: "Food or drinks you have right away: meals, snacks, coffee, milk tea, fast food, delivery.",
   groceries: "Food and supplies you keep at home: rice, meat, veggies, eggs, soap, shampoo.",
   transport: "Anything that gets you somewhere: Grab, jeep, tricycle, bus, MRT or LRT, taxi, gas, parking, tolls.",
@@ -19,7 +19,7 @@ export const CATEGORY_HELP: Record<ExpenseCategory, string> = {
 }
 
 /** Asked in order; the first yes is the category. */
-export const DECIDER: [string, ExpenseCategory][] = [
+const DECIDER: [string, ExpenseCategory][] = [
   ["Did I eat or drink it already?", "food"],
   ["Will I cook it or use it at home?", "groceries"],
   ["Did it get me somewhere?", "transport"],

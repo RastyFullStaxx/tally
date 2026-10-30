@@ -5,7 +5,8 @@ import { CategoryPicker } from "@/components/CategoryGuide"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
-import { isSaving, parseAmount, type CategoryId, type Entry } from "@/lib/ledger"
+import { isSaving, type CategoryId, type Entry } from "@/lib/model"
+import { parseAmount } from "@/lib/parse"
 
 type Props = {
   editing: { entry: Entry; key: number } | null

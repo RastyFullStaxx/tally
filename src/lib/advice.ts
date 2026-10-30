@@ -8,7 +8,6 @@ import {
   type Tip,
   WANTS,
   type Window,
-  capitalize,
   categoryDetail,
   daysBetween,
   describeItems,
@@ -31,26 +30,11 @@ import {
   topItems,
   unusualWeeks,
 } from "./insights.ts"
-import {
-  CATEGORIES,
-  isExpense,
-  isIncome,
-  isSaving,
-  lastMonths,
-  monthName,
-  monthOf,
-  monthSummary,
-  pad,
-  shiftDay,
-  shiftMonth,
-  wordsOf,
-  formatPesoWhole as pesos,
-  type CategoryId,
-  type Entry,
-  type Goal,
-  type Summary,
-  type TipVote,
-} from "./ledger.ts"
+import { CATEGORIES, isExpense, isIncome, isSaving, type CategoryId, type Entry, type Goal, type TipVote } from "./model.ts"
+import { wordsOf } from "./parse.ts"
+import { monthName, monthOf, pad, shiftDay, shiftMonth } from "./dates.ts"
+import { formatPesoWhole as pesos, capitalize } from "./format.ts"
+import { lastMonths, monthSummary, type Summary } from "./ledger.ts"
 
 const TONE_ORDER = { warn: 0, tip: 1, good: 2 }
 // The steps of a recovery plan rank straight after the warning they answer, ahead of tips weighed by pesos alone.
@@ -62,7 +46,7 @@ const up500 = (centavos: number) => Math.ceil(centavos / 50000) * 50000
 const down500 = (centavos: number) => Math.floor(centavos / 50000) * 50000
 
 /** The day the month's running spend first passed the budget (YYYY-MM-DD), or null if it hasn't. */
-export function budgetRanOut(s: Summary, month: string, budget: number): string | null {
+function budgetRanOut(s: Summary, month: string, budget: number): string | null {
   const i = budget ? s.cumulative.findIndex((v) => v > budget) : -1
   return i < 0 ? null : `${month}-${pad(i + 1)}`
 }
